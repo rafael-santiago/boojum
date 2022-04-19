@@ -28,7 +28,9 @@ boojum.prologue() {
 
 boojum.epilogue() {
     if (hefesto.sys.last_forge_result() == 0) {
-        hefesto.sys.echo("*** Build success.\n");
+        if (build("test") != 0) {
+            hefesto.project.abort(1);
+        }
     } else {
         hefesto.sys.echo("~~~ Build failure.\n");
     }

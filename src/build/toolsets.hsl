@@ -51,6 +51,44 @@ local function build_libkryptos() : result type int {
     result $err;
 }
 
+local function build_libcutest() : result type int {
+    if (isfile("libs/cutest/src/lib/libcutest.a") == 1) {
+        result 0;
+    }
+
+    var oldcwd type string;
+    $oldcwd = hefesto.sys.pwd();
+
+    if (hefesto.sys.cd("libs/cutest/src") != 1) {
+        hefesto.sys.echo("ERROR: Unable to find libcutest directory.\n");
+        result 1;
+    }
+
+    var err type int;
+    $err = hefesto.sys.run("hefesto");
+
+    hefesto.sys.cd($oldcwd);
+
+    result $err;
+}
+
+local function build_test() : result type int {
+    var oldcwd type string;
+    $oldcwd = hefesto.sys.pwd();
+
+    if (hefesto.sys.cd("test") != 1) {
+        hefesto.sys.echo("ERROR: Unable to find test directory.\n");
+        result 1;
+    }
+
+    var err type int;
+    $err = hefesto.sys.run("hefesto");
+
+    hefesto.sys.cd($oldcwd);
+
+    result $err;
+}
+
 local function has_gcc() : result type int {
     result (runbk("gcc --version") == 0);
 }

@@ -1,0 +1,2 @@
+--forgefiles=Forgefile.hsl --Forgefile-projects=boojum-tests --includes=../libs/kryptos/src,../libs/cutest/src --libraries=../libs/kryptos/lib,../libs/cutest/src/lib --obj-output-dir=o --bin-output-dir=bin
+

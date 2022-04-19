@@ -1,0 +1,69 @@
+include ../build/toolsets.hsl
+
+local var sources type list;
+local var includes type list;
+local var cflags type list;
+local var libraries type list;
+local var ldflags type list;
+local var target type string;
+local var curr_toolset type string;
+
+boojum-tests.preloading() {
+    $curr_toolset = get_app_toolset();
+}
+
+project boojum-tests : toolset $curr_toolset : $sources, $includes, $cflags, $libraries, $ldflags, $target;
+
+boojum-tests.prologue() {
+    build_deps();
+
+    $includes = hefesto.sys.get_option("includes");
+    $libraries = hefesto.sys.get_option("libraries");
+
+    $sources.ls(".*\\.c$");
+    if ($curr_toolset.match("^clang-") > 0 ||
+        $curr_toolset.match("^gcc-") > 0) {
+        $ldflags.add_item("-lcutest");
+        $ldflags.add_item("-lkryptos");
+    }
+
+    var os type string;
+    $os = hefesto.sys.os_name();
+    if ($os == "freebsd") {
+        $ldflags.add_item("-lexecinfo");
+        $ldflags.add_item("-lpthread");
+    }
+
+    $target = "boojum-tests";
+
+    if ($os == "windows") {
+        $target = $target + ".exe";
+    }
+}
+
+boojum-tests.epilogue() {
+    if (hefesto.sys.last_forge_result() == 0) {
+        if (runtests() == 0) {
+            hefesto.sys.echo("*** Build success.\n");
+        } else {
+            hefesto.sys.echo("~~~ Build failure due to broken test(s).\n");
+        }
+    } else {
+        hefesto.sys.echo("~~~ Build failure.\n");
+    }
+}
+
+local function runtests() : result type int {
+    result hefesto.sys.run(hefesto.sys.make_path("bin", $target) + " --cutest-leak-check=yes");
+}
+
+local function build_deps() : result type none {
+    var oldcwd type string;
+    $oldcwd = hefesto.sys.pwd();
+    hefesto.sys.cd("..");
+    if (build("libkryptos") != 0 ||
+        build("libcutest") != 0) {
+        hefesto.project.abort(1);
+    }
+    hefesto.sys.cd($oldcwd);
+}
