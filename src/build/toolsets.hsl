@@ -2,6 +2,7 @@ include ~/toolsets/gcc/gcc-lib.hsl
 include ~/toolsets/gcc/gcc-app.hsl
 include ~/toolsets/clang/clang-lib.hsl
 include ~/toolsets/clang/clang-app.hsl
+include ~/fsutil.hsl
 
 function get_lib_toolset() : result type string {
     result get_current_toolset() + "-c-lib";
@@ -19,6 +20,35 @@ function get_current_toolset() : result type string {
         result "clang";
     }
     result "";
+}
+
+function build(libname type string) : result type int {
+    var func type int;
+    $func = hefesto.sys.get_func_addr("build_" + $libname);
+    if ($func != 0) {
+        result hefesto.sys.call_func_addr($func);
+    }
+    hefesto.sys.echo("ERROR: Unknown library to build: " + $libname + "\n");
+    result 1;
+}
+
+local function build_libkryptos() : result type int {
+    if (isfile("libs/kryptos/lib/libkryptos.a") == 1) {
+        result 0;
+    }
+    var oldcwd type string;
+    $oldcwd = hefesto.sys.pwd();
+    if (hefesto.sys.cd("libs/kryptos/src") != 1) {
+        hefesto.sys.echo("ERROR: Unable to find libkryptos directory.\n");
+        result 1;
+    }
+
+    var err type int;
+    $err = hefesto.sys.run("hefesto");
+
+    hefesto.sys.cd($oldcwd);
+
+    result $err;
 }
 
 local function has_gcc() : result type int {

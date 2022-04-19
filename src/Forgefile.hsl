@@ -17,6 +17,9 @@ boojum.preloading() {
 project boojum : toolset $curr_toolset : $srcs, $incs, $cflags, $libraries, $ldflags, $target;
 
 boojum.prologue() {
+    if (build("libkryptos") != 0) {
+        hefesto.project.abort(1);
+    }
     $srcs.ls(".*\\.c$");
     $incs = hefesto.sys.get_option("includes");
     $deps = get_c_cpp_deps();
