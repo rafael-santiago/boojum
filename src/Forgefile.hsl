@@ -14,15 +14,23 @@ boojum.preloading() {
     $curr_toolset = get_lib_toolset();
 }
 
-project boojum : toolset $curr_toolset : $srcs, $incs, $cflags, $libraries, $ldflags, $target;
+project boojum : toolset $curr_toolset : dependencies $deps : $srcs, $incs, $cflags, $libraries, $ldflags, $target;
 
 boojum.prologue() {
     if (build("libkryptos") != 0) {
         hefesto.project.abort(1);
     }
     $srcs.ls(".*\\.c$");
-    $incs = hefesto.sys.get_option("includes");
     $deps = get_c_cpp_deps();
+    if (hefesto.sys.os_name() == "freebsd" ||
+        hefesto.sys.os_name() == "linux") {
+        hefesto.sys.cd("unix");
+        $srcs.ls(".*\\.c$");
+        $deps = $deps + get_c_cpp_deps();
+        hefesto.sys.cd("..");
+    }
+    $incs = hefesto.sys.get_option("includes");
+
     $target = "libboojum.a";
 }
 

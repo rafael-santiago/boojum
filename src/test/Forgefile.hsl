@@ -25,6 +25,7 @@ boojum-tests.prologue() {
         $curr_toolset.match("^gcc-") > 0) {
         $ldflags.add_item("-lcutest");
         $ldflags.add_item("-lkryptos");
+        $ldflags.add_item("-lboojum");
     }
 
     var os type string;

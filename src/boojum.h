@@ -1,6 +1,8 @@
 #ifndef BOOJUM_BOOJUM_H
 #define BOOJUM_BOOJUM_H 1
 
+#include <stdlib.h>
+
 int boojum_init(const size_t kupd_timeout_in_msecs);
 
 int boojum_deinit(void);
