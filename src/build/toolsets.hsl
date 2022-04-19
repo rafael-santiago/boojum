@@ -1,0 +1,37 @@
+include ~/toolsets/gcc/gcc-lib.hsl
+include ~/toolsets/gcc/gcc-app.hsl
+include ~/toolsets/clang/clang-lib.hsl
+include ~/toolsets/clang/clang-app.hsl
+
+function get_lib_toolset() : result type string {
+    result get_current_toolset() + "-c-lib";
+}
+
+function get_app_toolset() : result type string {
+    result get_current_toolset() + "-c-app";
+}
+
+function get_current_toolset() : result type string {
+    if (has_gcc()) {
+        result "gcc";
+    }
+    if (has_clang()) {
+        result "clang";
+    }
+    result "";
+}
+
+local function has_gcc() : result type int {
+    result (runbk("gcc --version") == 0);
+}
+
+local function has_clang() : result type int {
+    result (runbk("clang --version") == 0);
+}
+
+local function runbk(cmd type string) : result type int {
+    if (hefesto.sys.os_name() != "windows") {
+        result hefesto.sys.run($cmd + ">/dev/null 2>&1");
+    }
+    result hefesto.sys.run($cmd + ">nul 2>&1");
+}

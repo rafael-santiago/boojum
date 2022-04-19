@@ -1,0 +1,2 @@
+--forgefiles=Forgefile.hsl --Forgefile-projects=boojum --includes=. --bin-output-dir=../lib --obj-output-dir=o
+

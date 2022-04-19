@@ -1,0 +1,32 @@
+include build/toolsets.hsl
+include ~/toolsets/common/utils/lang/c/dependency_scanner.hsl
+
+local var curr_toolset type string;
+local var deps type string;
+local var srcs type list;
+local var incs type list;
+local var cflags type list;
+local var libraries type list;
+local var ldflags type list;
+local var target type string;
+
+boojum.preloading() {
+    $curr_toolset = get_lib_toolset();
+}
+
+project boojum : toolset $curr_toolset : $srcs, $incs, $cflags, $libraries, $ldflags, $target;
+
+boojum.prologue() {
+    $srcs.ls(".*\\.c$");
+    $incs = hefesto.sys.get_option("includes");
+    $deps = get_c_cpp_deps();
+    $target = "libboojum.a";
+}
+
+boojum.epilogue() {
+    if (hefesto.sys.last_forge_result() == 0) {
+        hefesto.sys.echo("*** Build success.\n");
+    } else {
+        hefesto.sys.echo("~~~ Build failure.\n");
+    }
+}
