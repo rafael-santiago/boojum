@@ -3,118 +3,152 @@
 #include <errno.h>
 #include <string.h>
 
+#define BOOJUM_BITSIZE (sizeof(uintptr_t) << 3)
+
+#define boojum_get_bitn(b, n)  ( ( ((b) >> (BOOJUM_BITSIZE - (n + 1))) & 0x1 ) )
+
 static int new_alloc_branch(boojum_alloc_branch_ctx **n);
 
-int boojum_add_addr(const uintptr_t segment_addr) {
-    size_t b = 0;
-    uintptr_t s = segment_addr;
-    int err = EFAULT;
-    boojum_alloc_branch_ctx *at = gBoojumCtx->alloc_tree, *atp, *new;
+static int boojum_add_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t segment_addr, const size_t bn);
 
-    if (at == NULL) {
-        if ((err = new_alloc_branch(&at)) != 0) {
-            goto boojum_add_addr_epilogue;
+static int boojum_del_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t segment_addr, const size_t bn);
+
+int boojum_add_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr) {
+    int err = EXIT_FAILURE;
+
+    if (alloc_tree == NULL) {
+        return EINVAL;
+    }
+
+    if (*alloc_tree == NULL) {
+        if ((err = new_alloc_branch(alloc_tree)) != EXIT_SUCCESS) {
+            return err;
         }
     }
 
-    atp = at;
+    (*alloc_tree)->refcount++;
 
-    do {
-        if ((s & 0x1) == 0) {
-            if ((err = new_alloc_branch(&new)) != 0) {
-                goto boojum_add_addr_epilogue;
-            }
-            atp->l = new;
-            atp = atp->l;
-        } else {
-            if ((err = new_alloc_branch(&new)) != 0) {
-                goto boojum_add_addr_epilogue;
-            }
-            atp->r = new;
-            atp = atp->r;
-        }
-        b++;
-        s >>= 1;
-    } while (b < sizeof(uintptr_t) << 3);
-
-    if (gBoojumCtx->alloc_tree == NULL) {
-        gBoojumCtx->alloc_tree = at;
-    }
-
-    err = 0;
-
-boojum_add_addr_epilogue:
-
-    if (err != 0) {
-        boojum_del_addr(segment_addr);
+    if (boojum_get_bitn(segment_addr, 0)) {
+        err = boojum_add_addr_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->r, segment_addr, 0);
+    } else {
+        err = boojum_add_addr_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->l, segment_addr, 0);
     }
 
     return err;
 }
 
-int boojum_del_addr(const uintptr_t segment_addr) {
-    boojum_alloc_branch_ctx *atp = gBoojumCtx->alloc_tree, *mempath[sizeof(uintptr_t) << 3], *mp = NULL;
-    boojum_alloc_leaf_ctx *lp = NULL;
-    uintptr_t s = segment_addr;
-    ssize_t b = 0;
+int boojum_del_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr) {
+    int err = EXIT_FAILURE;
 
-    do {
-        if (s & 1) {
-            mempath[b] = atp->r;
-            atp = atp->r;
-        } else {
-            mempath[b] = atp->l;
-            atp = atp->l;
-        }
-        b++;
-        s >>= 1;
-    } while (b < sizeof(uintptr_t) << 3);
-
-    if (atp->d != NULL) {
-        lp = (boojum_alloc_leaf_ctx *)atp->d;
-        if (lp->m != NULL) {
-            memset((unsigned char *)lp->m, 0, lp->m_size);
-            memset((unsigned char *)lp->r, 0, lp->m_size);
-            free(lp->m);
-            free(lp->r);
-            lp->m_size = 0;
-        }
-        free(atp->d);
-        atp->d = NULL;
+    if (alloc_tree == NULL || *alloc_tree == NULL) {
+        return EINVAL;
     }
 
-    b -= 1;
-    s = segment_addr;
+    if ((*alloc_tree)->refcount == 0) {
+        // INFO(Rafael): It should never happen in normal conditions.
+        return EINVAL;
+    }
 
-    do {
-        mp = mempath[b];
+    // TODO(Rafael): Ensure that the value exists in the tree before going ahead by removing it.
 
-        if (b > 0) {
-            // INFO(Rafael): Unlink the current value in the upper branch.
-            mp = mempath[b - 1];
-            if ((s >> ((sizeof(uintptr_t) << 3) - b + 1)) & 0x1) {
-                mp->r = NULL;
-            } else {
-                mp->l = NULL;
-            }
+    (*alloc_tree)->refcount--;
+
+    if (boojum_get_bitn(segment_addr, 0)) {
+        err = boojum_del_addr_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->r, segment_addr, 0);
+        if (((boojum_alloc_branch_ctx *)(*alloc_tree)->r)->refcount == 0) {
+            free((*alloc_tree)->r);
+            (*alloc_tree)->r = NULL;
         }
-
-        mp->refcount--;
-        if (mp->refcount == 0) {
-            free(mp);
+    } else {
+        err = boojum_del_addr_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->l, segment_addr, 0);
+        if (((boojum_alloc_branch_ctx *)(*alloc_tree)->l)->refcount == 0) {
+            free((*alloc_tree)->l);
+            (*alloc_tree)->l = NULL;
         }
+    }
 
-        b--;
-    } while (b > 0);
+    if ((*alloc_tree)->refcount == 0) {
+        free((*alloc_tree));
+        (*alloc_tree) = NULL;
+    }
 
-    return 0;
+    return err;
 }
 
-int boojum_set_data(const uintptr_t segment_addr, void *data, size_t *size) {
+static int boojum_add_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t segment_addr, const size_t bn) {
+    int err = EXIT_SUCCESS;
+
+    if (*node == NULL) {
+        if ((err = new_alloc_branch(node)) != EXIT_SUCCESS) {
+            return err;
+        }
+    }
+
+    (*node)->refcount++;
+
+    if (bn < BOOJUM_BITSIZE) {
+        if (boojum_get_bitn(segment_addr, bn + 1)) {
+            err = boojum_add_addr_iter((boojum_alloc_branch_ctx **)&(*node)->r, segment_addr, bn + 1);
+        } else {
+            err = boojum_add_addr_iter((boojum_alloc_branch_ctx **)&(*node)->l, segment_addr, bn + 1);
+        }
+
+        if (err != EXIT_SUCCESS) {
+            return err;
+        }
+    }
+
+    return err;
+}
+
+static int boojum_del_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t segment_addr, const size_t bn) {
+    int err = EXIT_SUCCESS;
+    boojum_alloc_leaf_ctx *lp = NULL;
+
+    if (*node == NULL) {
+        // INFO(Rafael): It should never happen in normal conditions.
+        return EINVAL;
+    }
+
+    (*node)->refcount--;
+
+    if (bn < BOOJUM_BITSIZE) {
+        if (bn == BOOJUM_BITSIZE - 1 && (*node)->d != NULL) {
+            lp = (boojum_alloc_leaf_ctx *)(*node)->d;
+            if (lp->m != NULL) {
+                memset((unsigned char *)lp->m, 0, lp->m_size);
+                memset((unsigned char *)lp->r, 0, lp->m_size);
+                free(lp->m);
+                free(lp->r);
+                lp->m_size = 0;
+            }
+            free((*node)->d);
+            (*node)->d = NULL;
+        }
+
+        if (boojum_get_bitn(segment_addr, bn + 1)) {
+            err = boojum_del_addr_iter((boojum_alloc_branch_ctx **)&(*node)->r, segment_addr, bn + 1);
+            if (((boojum_alloc_branch_ctx *)(*node)->r)->refcount == 0) {
+                free((*node)->r);
+                (*node)->r = NULL;
+            }
+        } else {
+            err = boojum_del_addr_iter((boojum_alloc_branch_ctx **)&(*node)->l, segment_addr, bn + 1);
+            if (((boojum_alloc_branch_ctx *)(*node)->l)->refcount == 0) {
+                free((*node)->l);
+                (*node)->l = NULL;
+            }
+        }
+    }
+
+    return err;
+}
+
+int boojum_set_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, void *data, size_t *size) {
     return EFAULT;
 }
 
-void *boojum_get_data(const uintptr_t segment_addr, size_t *size) {
+void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, size_t *size) {
     return NULL;
 }
 
@@ -125,8 +159,14 @@ static int new_alloc_branch(boojum_alloc_branch_ctx **n) {
         return ENOMEM;
     }
 
-    (*n)->l = (*n)->r = (*n)->d = NULL;
-    (*n)->refcount = 1;
+    (*n)->l = NULL;
+    (*n)->r = NULL;
+    (*n)->d = NULL;
+    (*n)->refcount = 0;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
+
+#undef BOOJUM_BITSIZE
+
+#undef boojum_get_bitn

@@ -3,6 +3,6 @@
 
 #include <cutest.h>
 
-CUTE_DECLARE_TEST_CASE(boojum_add_addr_tests);
+CUTE_DECLARE_TEST_CASE(boojum_btree_tests);
 
 #endif

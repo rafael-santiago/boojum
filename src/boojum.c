@@ -32,6 +32,8 @@ int boojum_init(const size_t kupd_timeout_in_msecs) {
     gBoojumCtx->kupd_in_msecs = kupd_timeout_in_msecs;
     gBoojumCtx->alloc_tree = NULL;
 
+    // TODO(Rafael): Start kupd routine.
+
     return EXIT_SUCCESS;
 }
 
@@ -44,10 +46,10 @@ int boojum_deinit(void) {
 
     if ((err = boojum_mutex_lock(&gBoojumCtx->giant_lock)) == EXIT_SUCCESS) {
         if ((err = boojum_deinit_thread(&gBoojumCtx->kupd)) == EXIT_SUCCESS) {
-            free(gBoojumCtx);
-            gBoojumCtx = NULL;
             boojum_mutex_unlock(&gBoojumCtx->giant_lock);
             boojum_deinit_mutex(&gBoojumCtx->giant_lock);
+            free(gBoojumCtx);
+            gBoojumCtx = NULL;
         }
     }
 
