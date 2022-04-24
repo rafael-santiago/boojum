@@ -1,7 +1,24 @@
 #include <boojum_btree.h>
+#include <boojum_sxor.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <string.h>
+
+// INFO(Rafael): This module implements all i/o stuff for Boojum's tree storage model.
+//               The tree is a binary tree with height equals to the cpu wordsize, e.g.:
+//
+//                                   [ R O O T ]
+//                            -           *
+//                           |S|        /   \
+//                           |E|       0     1      Most significant bit
+//                           |G|     /   \ /   \
+//                           |A|    0    1 0    1          (..)
+//                           |D|
+//                           |D|     (..)   (..)
+//                           |R|
+//                            -    0     1 0    1   Least significant bit
+//
+//                            [ A L L O C  L E A F S ]
 
 #define BOOJUM_BITSIZE (sizeof(uintptr_t) << 3)
 
@@ -12,6 +29,12 @@ static int new_alloc_branch(boojum_alloc_branch_ctx **n);
 static int boojum_add_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t segment_addr, const size_t bn);
 
 static int boojum_del_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t segment_addr, const size_t bn);
+
+static boojum_alloc_branch_ctx *boojum_get_alloc_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr);
+
+static void boojum_free_alloc_leaf_ctx(boojum_alloc_leaf_ctx *leaf);
+
+static int new_alloc_leaf(boojum_alloc_leaf_ctx **n);
 
 int boojum_add_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr) {
     int err = EXIT_FAILURE;
@@ -114,15 +137,7 @@ static int boojum_del_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t 
 
     if (bn < BOOJUM_BITSIZE) {
         if (bn == BOOJUM_BITSIZE - 1 && (*node)->d != NULL) {
-            lp = (boojum_alloc_leaf_ctx *)(*node)->d;
-            if (lp->m != NULL) {
-                memset((unsigned char *)lp->m, 0, lp->m_size);
-                memset((unsigned char *)lp->r, 0, lp->m_size);
-                free(lp->m);
-                free(lp->r);
-                lp->m_size = 0;
-            }
-            free((*node)->d);
+            boojum_free_alloc_leaf_ctx((*node)->d);
             (*node)->d = NULL;
         }
 
@@ -145,11 +160,137 @@ static int boojum_del_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t 
 }
 
 int boojum_set_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, void *data, size_t *size) {
-    return EFAULT;
+    boojum_alloc_branch_ctx *alp = NULL;
+    int err = EFAULT;
+
+    if (data == NULL || size == NULL) {
+        return EINVAL;
+    }
+
+    if ((alp = boojum_get_alloc_addr(alloc_tree, segment_addr)) == NULL) {
+        return ENOENT;
+    }
+
+    if (alp->d == NULL) {
+        if ((err = new_alloc_leaf((boojum_alloc_leaf_ctx **)&alp->d)) != EXIT_SUCCESS) {
+            goto boojum_set_data_epilogue;
+        }
+    } else if (((boojum_alloc_leaf_ctx *)alp->d)->m != NULL) {
+        memset(((boojum_alloc_leaf_ctx *)alp->d)->m, 0, ((boojum_alloc_leaf_ctx *)alp->d)->m_size);
+        free(((boojum_alloc_leaf_ctx *)alp->d)->m);
+        ((boojum_alloc_leaf_ctx *)alp->d)->m = NULL;
+        ((boojum_alloc_leaf_ctx *)alp->d)->m_size = 0;
+    }
+
+    if (*size == 0) {
+        err = EXIT_SUCCESS;
+    } else {
+        if ((((boojum_alloc_leaf_ctx *)alp->d)->m = malloc(*size)) == NULL) {
+            err = ENOMEM;
+            goto boojum_set_data_epilogue;
+        }
+        memset(((boojum_alloc_leaf_ctx *)alp->d)->m, 0, *size);
+        ((boojum_alloc_leaf_ctx *)alp->d)->m_size = *size;
+        err = boojum_sync_sxor(((boojum_alloc_leaf_ctx *)alp->d), data, *size);
+    }
+
+boojum_set_data_epilogue:
+
+    alp = NULL;
+
+    return err;
 }
 
 void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, size_t *size) {
-    return NULL;
+    unsigned char *data = NULL, *p = NULL, *p_end = NULL;
+    unsigned char *mp = NULL, *rp = NULL;
+    boojum_alloc_branch_ctx *alp = NULL;
+
+    if (alloc_tree == NULL || *alloc_tree == NULL || size == NULL) {
+        return NULL;
+    }
+
+    if ((alp = boojum_get_alloc_addr(alloc_tree, segment_addr)) == NULL) {
+        goto boojum_get_data_epilogue;
+    }
+
+    if (((boojum_alloc_leaf_ctx *)alp->d)->m_size == 0) {
+        *size = 0;
+        goto boojum_get_data_epilogue;
+    }
+
+    if ((data = malloc(((boojum_alloc_leaf_ctx *)alp->d)->m_size)) == NULL) {
+        goto boojum_get_data_epilogue;
+    }
+
+    *size = ((boojum_alloc_leaf_ctx *)alp->d)->m_size;
+
+    p = data;
+    p_end = p + ((boojum_alloc_leaf_ctx *)alp->d)->m_size;
+    mp = (unsigned char *)((boojum_alloc_leaf_ctx *)alp->d)->m;
+    rp = (unsigned char *)((boojum_alloc_leaf_ctx *)alp->d)->r;
+
+    while (p != p_end) {
+        *p = *mp ^ *rp;
+        p++;
+        mp++;
+        rp++;
+    }
+
+boojum_get_data_epilogue:
+
+    alp = NULL;
+
+    p = p_end = mp = rp = NULL;
+
+    return data;
+}
+
+static void boojum_free_alloc_leaf_ctx(boojum_alloc_leaf_ctx *leaf) {
+    if (leaf == NULL) {
+        return;
+    }
+    memset((unsigned char *)leaf->m, 0, leaf->m_size);
+    memset((unsigned char *)leaf->r, 0, leaf->m_size);
+    free(leaf->m);
+    free(leaf->r);
+    leaf->m_size = 0;
+    free(leaf);
+}
+
+static boojum_alloc_branch_ctx *boojum_get_alloc_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr) {
+    size_t b;
+    boojum_alloc_branch_ctx *atp = NULL;
+
+    if (alloc_tree == NULL || *alloc_tree == NULL) {
+        return NULL;
+    }
+
+    atp = *alloc_tree;
+
+    for (b = 0; b < BOOJUM_BITSIZE && atp != NULL; b++) {
+        if ((segment_addr >> (BOOJUM_BITSIZE - b + 1)) & 0x1) {
+            atp = atp->r;
+        } else {
+            atp = atp->l;
+        }
+    }
+
+    return atp;
+}
+
+static int new_alloc_leaf(boojum_alloc_leaf_ctx **n) {
+    (*n) = (boojum_alloc_leaf_ctx *)malloc(sizeof(boojum_alloc_leaf_ctx));
+
+    if ((*n) == NULL) {
+        return ENOMEM;
+    }
+
+    (*n)->m_size = 0;
+    (*n)->m = NULL;
+    (*n)->r = NULL;
+
+    return EXIT_SUCCESS;
 }
 
 static int new_alloc_branch(boojum_alloc_branch_ctx **n) {

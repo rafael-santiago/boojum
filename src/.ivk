@@ -1,2 +1,2 @@
---forgefiles=Forgefile.hsl --Forgefile-projects=boojum --includes=. --bin-output-dir=../lib --obj-output-dir=o
+--forgefiles=Forgefile.hsl --Forgefile-projects=boojum --includes=.,libs/kryptos/src --bin-output-dir=../lib --obj-output-dir=o
 
