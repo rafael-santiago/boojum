@@ -72,7 +72,9 @@ int boojum_del_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
         return EINVAL;
     }
 
-    // TODO(Rafael): Ensure that the value exists in the tree before going ahead by removing it.
+    if (boojum_get_alloc_addr(alloc_tree, segment_addr) != NULL) {
+        return ENOENT;
+    }
 
     (*alloc_tree)->refcount--;
 
