@@ -2,6 +2,7 @@
 #include <kryptos.h>
 #include <pthread.h>
 #include <errno.h>
+#include <unistd.h>
 
 static void *boojum_data_wiper(void *arg);
 
