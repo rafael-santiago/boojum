@@ -60,7 +60,8 @@ void *boojum_alloc(const size_t ssize) {
     return NULL;
 }
 
-void boojum_free(void *ptr) {
+int boojum_free(void *ptr) {
+    return ENOTSUP;
 }
 
 int boojum_set(void *ptr, void *data, size_t *data_size) {

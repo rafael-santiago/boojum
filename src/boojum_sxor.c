@@ -4,9 +4,10 @@
 
 int boojum_sync_sxor(boojum_alloc_leaf_ctx *aleaf, unsigned char *data, const size_t data_size) {
     // INFO(Rafael): Only call this function under a well-synchronized execution status.
-    unsigned char *rp = NULL;
-    unsigned char *mp = NULL, *mp_end = NULL;
-    unsigned char *p = NULL;
+    kryptos_u8_t *kp = NULL, *key = NULL;
+    kryptos_u8_t *mp = NULL, *mp_end = NULL;
+    kryptos_u8_t *p = NULL;
+    size_t r_size = 0;
 
     if (aleaf == NULL) {
         return EINVAL;
@@ -18,26 +19,40 @@ int boojum_sync_sxor(boojum_alloc_leaf_ctx *aleaf, unsigned char *data, const si
     }
 
     if (aleaf->r == NULL) {
-        aleaf->r = kryptos_get_random_block(aleaf->m_size);
+        aleaf->r = kryptos_get_random_block(aleaf->m_size * 3);
         if (aleaf->r == NULL) {
             return ENOMEM;
         }
     }
 
-    rp = (unsigned char *)aleaf->r;
+    key = kryptos_hkdf(aleaf->r, aleaf->m_size,
+                       sha3_512,
+                       aleaf->r + aleaf->m_size, aleaf->m_size,
+                       aleaf->r + (aleaf->m_size << 1), aleaf->m_size,
+                       aleaf->m_size);
+
+    if (key == NULL) {
+        return ENOMEM;
+    }
+
+    kp = key;
     mp = (unsigned char *)aleaf->m;
     mp_end = mp + aleaf->m_size;
     p = data;
 
     while (mp != mp_end) {
-        *mp = *p ^ *rp;
+        *mp = *p ^ *kp;
         *p = 0;
         mp++;
-        rp++;
+        kp++;
         p++;
     }
 
-    mp = mp_end = rp = p = NULL;
+    if (key != NULL) {
+        kryptos_freeseg(key, aleaf->m_size);
+    }
+
+    mp = mp_end = kp = p = key = NULL;
 
     return EXIT_SUCCESS;
 }

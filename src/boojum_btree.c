@@ -1,5 +1,6 @@
 #include <boojum_btree.h>
 #include <boojum_sxor.h>
+#include <kryptos.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <string.h>
@@ -208,9 +209,11 @@ boojum_set_data_epilogue:
 }
 
 void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, size_t *size) {
-    unsigned char *data = NULL, *p = NULL, *p_end = NULL;
-    unsigned char *mp = NULL, *rp = NULL;
+    kryptos_u8_t *data = NULL, *p = NULL, *p_end = NULL;
+    kryptos_u8_t *mp = NULL;
+    kryptos_u8_t *key = NULL, *kp = NULL;
     boojum_alloc_branch_ctx *alp = NULL;
+    boojum_alloc_leaf_ctx *aleaf = NULL;
 
     if (alloc_tree == NULL || *alloc_tree == NULL || size == NULL) {
         return NULL;
@@ -220,34 +223,61 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
         goto boojum_get_data_epilogue;
     }
 
-    if (((boojum_alloc_leaf_ctx *)alp->d)->m_size == 0) {
+    aleaf = (boojum_alloc_leaf_ctx *)alp->d;
+
+    if (aleaf->m_size == 0) {
         *size = 0;
         goto boojum_get_data_epilogue;
     }
 
-    if ((data = malloc(((boojum_alloc_leaf_ctx *)alp->d)->m_size)) == NULL) {
+    if ((data = (kryptos_u8_t *)kryptos_newseg(aleaf->m_size)) == NULL) {
         goto boojum_get_data_epilogue;
     }
 
-    *size = ((boojum_alloc_leaf_ctx *)alp->d)->m_size;
+    *size = aleaf->m_size;
 
+    // INFO(Rafael): We could create a function capable of umask the original data mask data,
+    //               but since it is about computers it can fail when masking data again. It would
+    //               increase the chance of exposition at the origin. Doing the KDF stuff here
+    //               will only require one KDF call and after zeroing this sensitive memory segment.
+    //               At this point we know that aleaf->r is 3 times greater than aleaf->m_size.
+
+    key = kryptos_hkdf(aleaf->r, aleaf->m_size,
+                       sha3_512,
+                       aleaf->r + aleaf->m_size, aleaf->m_size,
+                       aleaf->r + (aleaf->m_size << 1), aleaf->m_size,
+                       aleaf->m_size);
+
+    if (key == NULL) {
+        kryptos_freeseg(data, *size);
+        data = NULL;
+        *size = 0;
+        goto boojum_get_data_epilogue;
+    }
+
+
+    kp = key;
     p = data;
-    p_end = p + ((boojum_alloc_leaf_ctx *)alp->d)->m_size;
-    mp = (unsigned char *)((boojum_alloc_leaf_ctx *)alp->d)->m;
-    rp = (unsigned char *)((boojum_alloc_leaf_ctx *)alp->d)->r;
+    p_end = p + aleaf->m_size;
+    mp = (kryptos_u8_t *)aleaf->m;
 
     while (p != p_end) {
-        *p = *mp ^ *rp;
+        *p = *mp ^ *kp;
         p++;
+        kp++;
         mp++;
-        rp++;
     }
 
 boojum_get_data_epilogue:
 
-    alp = NULL;
+    if (key != NULL) {
+        kryptos_freeseg(key, aleaf->m_size);
+    }
 
-    p = p_end = mp = rp = NULL;
+    alp = NULL;
+    aleaf = NULL;
+
+    p = p_end = mp = kp = key = NULL;
 
     return data;
 }

@@ -9,7 +9,7 @@ int boojum_deinit(void);
 
 void *boojum_alloc(const size_t ssize);
 
-void boojum_free(void *ptr);
+int boojum_free(void *ptr);
 
 int boojum_set(void *ptr, void *data, size_t *data_size);
 

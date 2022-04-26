@@ -1,5 +1,5 @@
 #ifndef BOOJUM_BOOJUM_BTREE_H
-#define BOOJUM_BOOJUM_BTREE_H
+#define BOOJUM_BOOJUM_BTREE_H 1
 
 #include <boojum_types.h>
 
