@@ -286,7 +286,7 @@ boojum_get_data_epilogue:
     p = p_end = mp = kp = key = NULL;
 
     return data; // INFO(Rafael): Now is up to the user ensure that
-                 //               it will be clean as soon as possible
+                 //               it will be cleaned as soon as possible
                  //               besides not spread.
 }
 

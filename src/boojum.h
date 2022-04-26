@@ -15,6 +15,6 @@ int boojum_set(void *ptr, void *data, size_t *data_size);
 
 void *boojum_get(const void *ptr, size_t *data_size);
 
-void *boojum_timed_get(const void *ptr, const size_t ttv);
+void *boojum_timed_get(const void *ptr, size_t *data_size, const size_t ttv);
 
 #endif

@@ -31,6 +31,14 @@ struct boojum_ctx {
     boojum_thread kupd;
     size_t kupd_in_msecs;
     boojum_alloc_branch_ctx *alloc_tree;
+    int kupd_enabled; // TODO(Rafael): If detected C11 use atomic.
+};
+
+struct boojum_data_wiper_ctx {
+    boojum_thread thread;
+    size_t time_to_vanish;
+    void *data;
+    size_t data_size;
 };
 
 extern struct boojum_ctx *gBoojumCtx;
