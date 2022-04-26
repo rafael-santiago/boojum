@@ -82,19 +82,19 @@ int boojum_del_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
     if (boojum_get_bitn(segment_addr, 0)) {
         err = boojum_del_addr_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->r, segment_addr, 0);
         if (((boojum_alloc_branch_ctx *)(*alloc_tree)->r)->refcount == 0) {
-            free((*alloc_tree)->r);
+            kryptos_freeseg((*alloc_tree)->r, sizeof(boojum_alloc_branch_ctx));
             (*alloc_tree)->r = NULL;
         }
     } else {
         err = boojum_del_addr_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->l, segment_addr, 0);
         if (((boojum_alloc_branch_ctx *)(*alloc_tree)->l)->refcount == 0) {
-            free((*alloc_tree)->l);
+            kryptos_freeseg((*alloc_tree)->l, sizeof(boojum_alloc_branch_ctx));
             (*alloc_tree)->l = NULL;
         }
     }
 
     if ((*alloc_tree)->refcount == 0) {
-        free((*alloc_tree));
+        kryptos_freeseg((*alloc_tree), sizeof(boojum_alloc_branch_ctx));
         (*alloc_tree) = NULL;
     }
 
@@ -148,13 +148,13 @@ static int boojum_del_addr_iter(boojum_alloc_branch_ctx **node, const uintptr_t 
         if (boojum_get_bitn(segment_addr, bn + 1)) {
             err = boojum_del_addr_iter((boojum_alloc_branch_ctx **)&(*node)->r, segment_addr, bn + 1);
             if (((boojum_alloc_branch_ctx *)(*node)->r)->refcount == 0) {
-                free((*node)->r);
+                kryptos_freeseg((*node)->r, sizeof(boojum_alloc_branch_ctx));
                 (*node)->r = NULL;
             }
         } else {
             err = boojum_del_addr_iter((boojum_alloc_branch_ctx **)&(*node)->l, segment_addr, bn + 1);
             if (((boojum_alloc_branch_ctx *)(*node)->l)->refcount == 0) {
-                free((*node)->l);
+                kryptos_freeseg((*node)->l, sizeof(boojum_alloc_branch_ctx));
                 (*node)->l = NULL;
             }
         }
@@ -181,7 +181,7 @@ int boojum_set_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
         }
     } else if (((boojum_alloc_leaf_ctx *)alp->d)->m != NULL) {
         memset(((boojum_alloc_leaf_ctx *)alp->d)->m, 0, ((boojum_alloc_leaf_ctx *)alp->d)->m_size);
-        free(((boojum_alloc_leaf_ctx *)alp->d)->m);
+        kryptos_freeseg(((boojum_alloc_leaf_ctx *)alp->d)->m, ((boojum_alloc_leaf_ctx *)alp->d)->m_size);
         ((boojum_alloc_leaf_ctx *)alp->d)->m = NULL;
         ((boojum_alloc_leaf_ctx *)alp->d)->m_size = 0;
     }
@@ -189,7 +189,7 @@ int boojum_set_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
     if (*size == 0) {
         err = EXIT_SUCCESS;
     } else {
-        if ((((boojum_alloc_leaf_ctx *)alp->d)->m = malloc(*size)) == NULL) {
+        if ((((boojum_alloc_leaf_ctx *)alp->d)->m = kryptos_newseg(*size)) == NULL) {
             err = ENOMEM;
             goto boojum_set_data_epilogue;
         }
@@ -236,11 +236,15 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
 
     *size = aleaf->m_size;
 
-    // INFO(Rafael): We could create a function capable of umask the original data mask data,
-    //               but since it is about computers it can fail when masking data again. It would
-    //               increase the chance of exposition at the origin. Doing the KDF stuff here
-    //               will only require one KDF call and after zeroing this sensitive memory segment.
-    //               At this point we know that aleaf->r is 3 times greater than aleaf->m_size.
+    // INFO(Rafael): We could create a function capable of umask the original data,
+    //               but since it is about computers it can fail when masking data
+    //               again. It would increase the chance of exposition at the origin.
+    //               Doing the KDF stuff here will only require one KDF call and after
+    //               zeroing the produced sensitive memory segment a.k.a. the keystream.
+    //
+    //               Notice that at this point we already know that aleaf->r is 3 times
+    //               greater than aleaf->m_size. It it has not the program has a bug and
+    //               will "explode" during tests.
 
     key = kryptos_hkdf(aleaf->r, aleaf->m_size,
                        sha3_512,
@@ -255,11 +259,13 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
         goto boojum_get_data_epilogue;
     }
 
-
     kp = key;
     p = data;
     p_end = p + aleaf->m_size;
     mp = (kryptos_u8_t *)aleaf->m;
+
+    // INFO(Rafael): Let's avoid spreading this sensitive information
+    //               over libc's stack by calling memcpy.
 
     while (p != p_end) {
         *p = *mp ^ *kp;
@@ -279,19 +285,29 @@ boojum_get_data_epilogue:
 
     p = p_end = mp = kp = key = NULL;
 
-    return data;
+    return data; // INFO(Rafael): Now is up to the user ensure that
+                 //               it will be clean as soon as possible
+                 //               besides not spread.
 }
 
 static void boojum_free_alloc_leaf_ctx(boojum_alloc_leaf_ctx *leaf) {
     if (leaf == NULL) {
         return;
     }
+
     memset((unsigned char *)leaf->m, 0, leaf->m_size);
     memset((unsigned char *)leaf->r, 0, leaf->m_size);
-    free(leaf->m);
-    free(leaf->r);
+
+    if (leaf->m != NULL) {
+        kryptos_freeseg(leaf->m, leaf->m_size);
+    }
+
+    if (leaf->r != NULL) {
+        kryptos_freeseg(leaf->r, leaf->m_size);
+    }
+
     leaf->m_size = 0;
-    free(leaf);
+    kryptos_freeseg(leaf, sizeof(boojum_alloc_leaf_ctx));
 }
 
 static boojum_alloc_branch_ctx *boojum_get_alloc_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr) {
@@ -316,7 +332,7 @@ static boojum_alloc_branch_ctx *boojum_get_alloc_addr(boojum_alloc_branch_ctx **
 }
 
 static int new_alloc_leaf(boojum_alloc_leaf_ctx **n) {
-    (*n) = (boojum_alloc_leaf_ctx *)malloc(sizeof(boojum_alloc_leaf_ctx));
+    (*n) = (boojum_alloc_leaf_ctx *)kryptos_newseg(sizeof(boojum_alloc_leaf_ctx));
 
     if ((*n) == NULL) {
         return ENOMEM;
@@ -330,7 +346,7 @@ static int new_alloc_leaf(boojum_alloc_leaf_ctx **n) {
 }
 
 static int new_alloc_branch(boojum_alloc_branch_ctx **n) {
-    (*n) = (boojum_alloc_branch_ctx *)malloc(sizeof(boojum_alloc_branch_ctx));
+    (*n) = (boojum_alloc_branch_ctx *)kryptos_newseg(sizeof(boojum_alloc_branch_ctx));
 
     if ((*n) == NULL) {
         return ENOMEM;
