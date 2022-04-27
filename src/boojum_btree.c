@@ -123,6 +123,9 @@ static int boojum_update_xor_maskings_iter(boojum_alloc_branch_ctx **alloc_tree)
     }
 
     if ((*alloc_tree)->d != NULL) {
+        // INFO(Rafael): We found a leaf, now it is only about updating the masked allocation and
+        //               returning back because since it is an allocation leaf, there is nothing
+        //               below it.
         return boojum_sync_sxor_upd((boojum_alloc_leaf_ctx *)(*alloc_tree)->d);
     }
 
@@ -272,15 +275,15 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
 
     *size = aleaf->m_size;
 
-    // INFO(Rafael): We could create a function capable of umask the original data,
+    // INFO(Rafael): We could create a function capable of unmask the original data,
     //               but since it is about computers it can fail when masking data
     //               again. It would increase the chance of exposition at the origin.
     //               Doing the KDF stuff here will only require one KDF call and after
     //               zeroing the produced sensitive memory segment a.k.a. the keystream.
     //
     //               Notice that at this point we already know that aleaf->r is 3 times
-    //               greater than aleaf->m_size. It it has not the program has a bug and
-    //               will "explode" during tests.
+    //               greater than aleaf->m_size. If it has not, the program has a bug,
+    //               and it must "explode" during tests warning up us.
 
     key = kryptos_hkdf(aleaf->r, aleaf->m_size,
                        sha3_512,
