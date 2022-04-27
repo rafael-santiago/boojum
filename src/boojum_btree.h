@@ -14,4 +14,6 @@ int boojum_set_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
 
 void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, size_t *size);
 
+int boojum_update_xor_maskings(boojum_alloc_branch_ctx **alloc_tree);
+
 #endif

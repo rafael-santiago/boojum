@@ -37,6 +37,20 @@ static void boojum_free_alloc_leaf_ctx(boojum_alloc_leaf_ctx *leaf);
 
 static int new_alloc_leaf(boojum_alloc_leaf_ctx **n);
 
+static int boojum_update_xor_maskings_iter(boojum_alloc_branch_ctx **alloc_tree);
+
+int boojum_update_xor_maskings(boojum_alloc_branch_ctx **alloc_tree) {
+    if (alloc_tree == NULL) {
+        return EINVAL;
+    }
+
+    if (*alloc_tree == NULL) {
+        return EXIT_SUCCESS;
+    }
+
+    return boojum_update_xor_maskings_iter(alloc_tree);
+}
+
 int boojum_add_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr) {
     int err = EXIT_FAILURE;
 
@@ -96,6 +110,28 @@ int boojum_del_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
     if ((*alloc_tree)->refcount == 0) {
         kryptos_freeseg((*alloc_tree), sizeof(boojum_alloc_branch_ctx));
         (*alloc_tree) = NULL;
+    }
+
+    return err;
+}
+
+static int boojum_update_xor_maskings_iter(boojum_alloc_branch_ctx **alloc_tree) {
+    int err = EXIT_SUCCESS;
+
+    if (alloc_tree == NULL || *alloc_tree == NULL) {
+        return EINVAL;
+    }
+
+    if ((*alloc_tree)->d != NULL) {
+        return boojum_sync_sxor_upd((boojum_alloc_leaf_ctx *)(*alloc_tree)->d);
+    }
+
+    if ((*alloc_tree)->l != NULL) {
+        err = boojum_update_xor_maskings_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->l);
+    }
+
+    if (err == EXIT_SUCCESS && (*alloc_tree)->r != NULL) {
+        err = boojum_update_xor_maskings_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->r);
     }
 
     return err;
@@ -303,7 +339,7 @@ static void boojum_free_alloc_leaf_ctx(boojum_alloc_leaf_ctx *leaf) {
     }
 
     if (leaf->r != NULL) {
-        kryptos_freeseg(leaf->r, leaf->m_size);
+        kryptos_freeseg(leaf->r, leaf->m_size * 3);
     }
 
     leaf->m_size = 0;
