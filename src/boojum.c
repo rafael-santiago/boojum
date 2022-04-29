@@ -19,7 +19,7 @@ int boojum_init(const size_t kupd_timeout_in_msecs) {
         }
     }
 
-    gBoojumCtx = (struct boojum_ctx *) malloc(sizeof(struct boojum_ctx));
+    gBoojumCtx = (struct boojum_ctx *) kryptos_newseg(sizeof(struct boojum_ctx));
     if (gBoojumCtx == NULL) {
         return ENOMEM;
     }
@@ -31,12 +31,21 @@ int boojum_init(const size_t kupd_timeout_in_msecs) {
         return err;
     }
 
+    gBoojumCtx->kupd = 0;
     gBoojumCtx->kupd_in_msecs = kupd_timeout_in_msecs;
     gBoojumCtx->alloc_tree = NULL;
+    gBoojumCtx->kupd_in_msecs = 1000; // INFO(Rafael): I have been using the default suggested in the original paper
+                                      //               for the xor maskings update, 1 second.
+    gBoojumCtx->kupd_enabled = 0;
 
-    // TODO(Rafael): Start kupd routine.
+    if ((err = boojum_run_kupd_job(&gBoojumCtx->kupd,
+                                   &gBoojumCtx->alloc_tree,
+                                   gBoojumCtx->kupd_in_msecs,
+                                   &gBoojumCtx->kupd_enabled)) != EXIT_SUCCESS) {
+        boojum_deinit();
+    }
 
-    return EXIT_SUCCESS;
+    return err;
 }
 
 int boojum_deinit(void) {
@@ -46,11 +55,14 @@ int boojum_deinit(void) {
         return EINVAL;
     }
 
+    gBoojumCtx->kupd_enabled = 0;
+    boojum_thread_join(&gBoojumCtx->kupd);
+
     if ((err = boojum_mutex_lock(&gBoojumCtx->giant_lock)) == EXIT_SUCCESS) {
         if ((err = boojum_deinit_thread(&gBoojumCtx->kupd)) == EXIT_SUCCESS) {
             boojum_mutex_unlock(&gBoojumCtx->giant_lock);
             boojum_deinit_mutex(&gBoojumCtx->giant_lock);
-            free(gBoojumCtx);
+            kryptos_freeseg(gBoojumCtx, sizeof(struct boojum_ctx));
             gBoojumCtx = NULL;
         }
     }

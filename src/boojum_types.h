@@ -82,6 +82,13 @@ struct boojum_data_wiper_ctx {
     size_t data_size;
 };
 
+struct boojum_kupd_ctx {
+    boojum_thread *thread;
+    boojum_alloc_branch_ctx **alloc_tree;
+    size_t keys_expiration_time;
+    int *enabled;
+};
+
 extern struct boojum_ctx *gBoojumCtx;
 
 #endif
