@@ -150,7 +150,9 @@ static void *boojum_data_wiper(void *arg) {
         kryptos_freeseg(dw, sizeof(struct boojum_data_wiper_ctx));
         dw = NULL;
     }
+
     pthread_exit(NULL);
+
     return NULL;
 }
 
