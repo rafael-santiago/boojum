@@ -67,6 +67,10 @@ int boojum_deinit(void) {
         }
     }
 
+#if defined(__unix__)
+    usleep(1000);
+#endif
+
     return err;
 }
 
