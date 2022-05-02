@@ -7,4 +7,8 @@ CUTE_DECLARE_TEST_CASE(boojum_init_tests);
 
 CUTE_DECLARE_TEST_CASE(boojum_deinit_tests);
 
+CUTE_DECLARE_TEST_CASE(boojum_alloc_free_tests);
+
+CUTE_DECLARE_TEST_CASE(boojum_set_get_tests);
+
 #endif
