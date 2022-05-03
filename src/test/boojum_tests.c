@@ -3,6 +3,12 @@
 #include <errno.h>
 #include <string.h>
 
+// WARN(Rafael): libcutest's memory leak detector have been disabled for all main boojum's entry points
+//               because it depends on pthread conveniences and it by default leaks some resources even
+//               when taking care of requesting it for do not leak nothing... Anyway, all btree tests
+//               are being executed with memory leak detector tuned on. In Boojum this is the main
+//               spot where memory leak could be harmful.
+
 CUTE_TEST_CASE(boojum_init_tests)
     int yes = g_cute_leak_check;
     CUTE_ASSERT(boojum_init(0) == EINVAL);
@@ -23,7 +29,9 @@ CUTE_TEST_CASE(boojum_deinit_tests)
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_alloc_free_tests)
+    int yes = g_cute_leak_check;
     char *segment = NULL;
+    g_cute_leak_check = 0;
     segment = boojum_alloc(1024);
     CUTE_ASSERT(segment == NULL);
     CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
@@ -31,6 +39,7 @@ CUTE_TEST_CASE(boojum_alloc_free_tests)
     CUTE_ASSERT(segment != NULL);
     CUTE_ASSERT(boojum_free(segment) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
+    g_cute_leak_check = yes;
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_set_get_tests)
