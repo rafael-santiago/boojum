@@ -13,9 +13,9 @@ function get_app_toolset() : result type string {
 }
 
 function get_current_toolset() : result type string {
-    if (has_gcc()) {
-        result "gcc";
-    }
+#    if (has_gcc()) {
+#        result "gcc";
+#    }
     if (has_clang()) {
         result "clang";
     }
@@ -81,8 +81,17 @@ local function build_test() : result type int {
         result 1;
     }
 
+    var cmdline type string;
+    $cmdline = "hefesto";
+
+    var dbg type list;
+    $dbg = hefesto.sys.get_option("compile-model");
+    if ($dbg.count() > 0 && $dbg.item(0) == "debug") {
+        $cmdline = $cmdline + " --compile-model=debug";
+    }
+
     var err type int;
-    $err = hefesto.sys.run("hefesto");
+    $err = hefesto.sys.run($cmdline);
 
     hefesto.sys.cd($oldcwd);
 

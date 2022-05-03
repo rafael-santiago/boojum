@@ -10,13 +10,13 @@
 
 CUTE_TEST_CASE(boojum_btree_tests)
     struct test_ctx {
-        const uintptr_t addr;
+        void *addr;
         const char *data;
         const size_t data_size;
     } test_vector[] = {
-        { 0xDEADBEEF, "DEADBEEF", 8 },
-        { 0x0000BEEF, "BEEF", 4 },
-        { 0xAABBCCDD, "AABBCCDD", 8 },
+        { NULL, "DEADBEEF", 8 },
+        { NULL, "BEEF", 4 },
+        { NULL, "AABBCCDD", 8 },
     }, *test = &test_vector[0], *test_end = test + sizeof(test_vector) / sizeof(test_vector[0]), *tp;
     boojum_alloc_branch_ctx *root = NULL, *rp = NULL;
     size_t b;
@@ -27,7 +27,9 @@ CUTE_TEST_CASE(boojum_btree_tests)
     // INFO(Rafael): Testing addition.
 
     while (test != test_end) {
-        CUTE_ASSERT(boojum_add_addr(&root, test->addr) == EXIT_SUCCESS);
+        test->addr = malloc(test->data_size);
+        CUTE_ASSERT(test->addr != NULL);
+        CUTE_ASSERT(boojum_add_addr(&root, (uintptr_t)test->addr, test->data_size) == EXIT_SUCCESS);
         test++;
     }
 
@@ -41,7 +43,7 @@ CUTE_TEST_CASE(boojum_btree_tests)
     while (test != test_end) {
         rp = root;
         for (b = 0; b < BOOJUM_BITSIZE; b++) {
-            if (boojum_get_bitn(test->addr, b)) {
+            if (boojum_get_bitn((uintptr_t)test->addr, b)) {
                 rp = rp->r;
             } else {
                 rp = rp->l;
@@ -62,7 +64,7 @@ CUTE_TEST_CASE(boojum_btree_tests)
         temp_data = (char *)malloc(temp_data_size);
         CUTE_ASSERT(temp_data != NULL);
         memcpy(temp_data, test->data, temp_data_size);
-        CUTE_ASSERT(boojum_set_data(&root, test->addr, temp_data, &temp_data_size) == EXIT_SUCCESS);
+        CUTE_ASSERT(boojum_set_data(&root, (uintptr_t)test->addr, temp_data, &temp_data_size) == EXIT_SUCCESS);
         CUTE_ASSERT(temp_data_size == 0);
         for (b = 0; b < test->data_size; b++) {
             CUTE_ASSERT(temp_data[b] == 0);
@@ -81,7 +83,7 @@ CUTE_TEST_CASE(boojum_btree_tests)
     CUTE_ASSERT(boojum_get_data(&root, 0x404, &temp_data_size) == NULL);
 
     while (test != test_end) {
-        temp_data = boojum_get_data(&root, test->addr, &temp_data_size);
+        temp_data = boojum_get_data(&root, (uintptr_t)test->addr, &temp_data_size);
         CUTE_ASSERT(temp_data != NULL);
         CUTE_ASSERT(temp_data_size == test->data_size);
         CUTE_ASSERT(memcmp(temp_data, test->data, temp_data_size) == 0);
@@ -100,13 +102,13 @@ CUTE_TEST_CASE(boojum_btree_tests)
     CUTE_ASSERT(boojum_del_addr(&root, 0x404) == ENOENT);
 
     while (test != test_end) {
-        CUTE_ASSERT(boojum_del_addr(&root, test->addr) == EXIT_SUCCESS);
+        CUTE_ASSERT(boojum_del_addr(&root, (uintptr_t)test->addr) == EXIT_SUCCESS);
         for (tp = test + 1; tp != test_end; tp++) {
             // INFO(Rafael): Ensuring that the last deletion did not screw up
             //               the remaining additions.
             rp  = root;
             for (b = 0; b < BOOJUM_BITSIZE; b++) {
-                if (boojum_get_bitn(tp->addr, b)) {
+                if (boojum_get_bitn((uintptr_t)tp->addr, b)) {
                     rp = rp->r;
                 } else {
                     rp = rp->l;

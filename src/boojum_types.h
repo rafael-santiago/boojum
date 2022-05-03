@@ -35,10 +35,12 @@ typedef struct boojum_alloc_leaf {
     //
     //               - m_size is the total size in bytes of the allocated data.
     //
+    //               - u_size is the total of bytes used since the last set operation.
+    //
     //               - m is the masked data xored with r.
     //
     //               - r is the random seed that we derive to mask m, its size is given by 3 * m_size.
-    size_t m_size;
+    size_t m_size, u_size;
     void *m;
     void *r;
 }boojum_alloc_leaf_ctx;

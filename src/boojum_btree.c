@@ -51,8 +51,9 @@ int boojum_update_xor_maskings(boojum_alloc_branch_ctx **alloc_tree) {
     return boojum_update_xor_maskings_iter(alloc_tree);
 }
 
-int boojum_add_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr) {
+int boojum_add_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, const size_t ssize) {
     int err = EXIT_FAILURE;
+    boojum_alloc_branch_ctx *alp = NULL;
 
     if (alloc_tree == NULL) {
         return EINVAL;
@@ -70,6 +71,24 @@ int boojum_add_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
         err = boojum_add_addr_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->r, segment_addr, 0);
     } else {
         err = boojum_add_addr_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->l, segment_addr, 0);
+    }
+
+    if (err == EXIT_SUCCESS) {
+        if ((alp = boojum_get_alloc_addr(alloc_tree, segment_addr)) == NULL) {
+            // INFO(Rafael): It should never happen in normal conditions.
+            boojum_del_addr(alloc_tree, segment_addr);
+            return EFAULT;
+        }
+
+        if ((err = new_alloc_leaf((boojum_alloc_leaf_ctx **)&alp->d)) != EXIT_SUCCESS) {
+            boojum_del_addr(alloc_tree, segment_addr);
+            return ENOMEM;
+        }
+
+        ((boojum_alloc_leaf_ctx *)alp->d)->m = (void *)segment_addr;
+        ((boojum_alloc_leaf_ctx *)alp->d)->m_size = ssize;
+
+        alp = NULL;
     }
 
     return err;
@@ -214,26 +233,22 @@ int boojum_set_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
         return ENOENT;
     }
 
-    if (alp->d == NULL) {
-        if ((err = new_alloc_leaf((boojum_alloc_leaf_ctx **)&alp->d)) != EXIT_SUCCESS) {
-            goto boojum_set_data_epilogue;
-        }
-    } else if (((boojum_alloc_leaf_ctx *)alp->d)->m != NULL) {
-        memset(((boojum_alloc_leaf_ctx *)alp->d)->m, 0, ((boojum_alloc_leaf_ctx *)alp->d)->m_size);
-        kryptos_freeseg(((boojum_alloc_leaf_ctx *)alp->d)->m, ((boojum_alloc_leaf_ctx *)alp->d)->m_size);
-        ((boojum_alloc_leaf_ctx *)alp->d)->m = NULL;
-        ((boojum_alloc_leaf_ctx *)alp->d)->m_size = 0;
+    if (alp->d == NULL || ((boojum_alloc_leaf_ctx *)alp->d)->m == NULL) {
+        // INFO(Rafael): It should never happen in normal conditions.
+        err = EINVAL;
+        goto boojum_set_data_epilogue;
+    }
+
+    if (*size > ((boojum_alloc_leaf_ctx *)alp->d)->m_size) {
+        err = EOVERFLOW;
+        goto boojum_set_data_epilogue;
     }
 
     if (*size == 0) {
         err = EXIT_SUCCESS;
     } else {
-        if ((((boojum_alloc_leaf_ctx *)alp->d)->m = kryptos_newseg(*size)) == NULL) {
-            err = ENOMEM;
-            goto boojum_set_data_epilogue;
-        }
+        ((boojum_alloc_leaf_ctx *)alp->d)->u_size = *size;
         memset(((boojum_alloc_leaf_ctx *)alp->d)->m, 0, *size);
-        ((boojum_alloc_leaf_ctx *)alp->d)->m_size = *size;
         err = boojum_sync_sxor(((boojum_alloc_leaf_ctx *)alp->d), data, *size);
         if (err == EXIT_SUCCESS) {
             *size = 0;
@@ -335,17 +350,18 @@ static void boojum_free_alloc_leaf_ctx(boojum_alloc_leaf_ctx *leaf) {
     }
 
     memset((unsigned char *)leaf->m, 0, leaf->m_size);
-    memset((unsigned char *)leaf->r, 0, leaf->m_size);
+    memset((unsigned char *)leaf->r, 0, leaf->u_size);
 
     if (leaf->m != NULL) {
         kryptos_freeseg(leaf->m, leaf->m_size);
     }
 
     if (leaf->r != NULL) {
-        kryptos_freeseg(leaf->r, leaf->m_size * 3);
+        kryptos_freeseg(leaf->r, leaf->u_size * 3);
     }
 
     leaf->m_size = 0;
+    leaf->u_size = 0;
     kryptos_freeseg(leaf, sizeof(boojum_alloc_leaf_ctx));
 }
 
@@ -378,6 +394,7 @@ static int new_alloc_leaf(boojum_alloc_leaf_ctx **n) {
     }
 
     (*n)->m_size = 0;
+    (*n)->u_size = 0;
     (*n)->m = NULL;
     (*n)->r = NULL;
 

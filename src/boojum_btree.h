@@ -6,7 +6,7 @@
 // WARN(Rafael): All functions implemented in this module infers that alloc_tree is under
 //               a well-synchronized status.
 
-int boojum_add_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr);
+int boojum_add_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, const size_t ssize);
 
 int boojum_del_addr(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr);
 

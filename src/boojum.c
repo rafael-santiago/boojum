@@ -4,6 +4,10 @@
 #include <boojum_btree.h>
 #include <kryptos.h>
 #include <errno.h>
+#if defined(__unix__)
+# include <unistd.h>
+#endif
+#include <stdio.h>
 
 int boojum_init(const size_t kupd_timeout_in_msecs) {
     int err = EFAULT;
@@ -90,7 +94,7 @@ void *boojum_alloc(const size_t ssize) {
         goto boojum_alloc_epilogue;
     }
 
-    if (boojum_add_addr(&gBoojumCtx->alloc_tree, (uintptr_t)ptr) != EXIT_SUCCESS) {
+    if (boojum_add_addr(&gBoojumCtx->alloc_tree, (uintptr_t)ptr, ssize) != EXIT_SUCCESS) {
         kryptos_freeseg(ptr, ssize);
         ptr = NULL;
     }

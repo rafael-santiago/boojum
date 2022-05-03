@@ -13,23 +13,23 @@ int boojum_sync_sxor(boojum_alloc_leaf_ctx *aleaf, unsigned char *data, const si
         return EINVAL;
     }
 
-    if (data_size != aleaf->m_size || aleaf->m == NULL) {
+    if (data_size != aleaf->u_size || aleaf->m == NULL) {
         // INFO(Rafael): It should never happen in normal conditions.
         return EINVAL;
     }
 
     if (aleaf->r == NULL) {
-        aleaf->r = kryptos_get_random_block(aleaf->m_size * 3);
+        aleaf->r = kryptos_get_random_block(aleaf->u_size * 3);
         if (aleaf->r == NULL) {
             return ENOMEM;
         }
     }
 
-    key = kryptos_hkdf(aleaf->r, aleaf->m_size,
+    key = kryptos_hkdf(aleaf->r, aleaf->u_size,
                        sha3_512,
-                       aleaf->r + aleaf->m_size, aleaf->m_size,
-                       aleaf->r + (aleaf->m_size << 1), aleaf->m_size,
-                       aleaf->m_size);
+                       aleaf->r + aleaf->u_size, aleaf->u_size,
+                       aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
+                       aleaf->u_size);
 
     if (key == NULL) {
         return ENOMEM;
@@ -37,7 +37,7 @@ int boojum_sync_sxor(boojum_alloc_leaf_ctx *aleaf, unsigned char *data, const si
 
     kp = key;
     mp = (unsigned char *)aleaf->m;
-    mp_end = mp + aleaf->m_size;
+    mp_end = mp + aleaf->u_size;
     p = data;
 
     while (mp != mp_end) {
@@ -49,7 +49,7 @@ int boojum_sync_sxor(boojum_alloc_leaf_ctx *aleaf, unsigned char *data, const si
     }
 
     if (key != NULL) {
-        kryptos_freeseg(key, aleaf->m_size);
+        kryptos_freeseg(key, aleaf->u_size);
     }
 
     mp = mp_end = kp = p = key = NULL;
@@ -71,17 +71,17 @@ int boojum_sync_sxor_upd(boojum_alloc_leaf_ctx *aleaf) {
         return EINVAL;
     }
 
-    if (aleaf->m == NULL || aleaf->m_size == 0) {
+    if (aleaf->m == NULL || aleaf->u_size == 0) {
         return EXIT_SUCCESS;
     }
 
-    if ((r = kryptos_get_random_block(aleaf->m_size * 3)) == NULL) {
+    if ((r = kryptos_get_random_block(aleaf->u_size * 3)) == NULL) {
         return ENOMEM;
     }
 
     rp = r;
     mp = aleaf->r;
-    mp_end = mp + aleaf->m_size * 3;
+    mp_end = mp + aleaf->u_size * 3;
 
     while (mp != mp_end) {
         *rp ^= *mp;
@@ -91,17 +91,17 @@ int boojum_sync_sxor_upd(boojum_alloc_leaf_ctx *aleaf) {
 
     // INFO(Rafael): key[0] is equivalent to H(r) and key[1] is H(r ^ r').
 
-    key[0] = kryptos_hkdf(aleaf->r, aleaf->m_size,
+    key[0] = kryptos_hkdf(aleaf->r, aleaf->u_size,
                           sha3_512,
-                          aleaf->r + aleaf->m_size, aleaf->m_size,
-                          aleaf->r + (aleaf->m_size << 1), aleaf->m_size,
-                          aleaf->m_size);
+                          aleaf->r + aleaf->u_size, aleaf->u_size,
+                          aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
+                          aleaf->u_size);
 
-    key[1] = kryptos_hkdf(r, aleaf->m_size,
+    key[1] = kryptos_hkdf(r, aleaf->u_size,
                           sha3_512,
-                          aleaf->r + aleaf->m_size, aleaf->m_size,
-                          aleaf->r + (aleaf->m_size << 1),  aleaf->m_size,
-                          aleaf->m_size);
+                          aleaf->r + aleaf->u_size, aleaf->u_size,
+                          aleaf->r + (aleaf->u_size << 1),  aleaf->u_size,
+                          aleaf->u_size);
 
     if (key[0] == NULL || key[1] == NULL) {
         err = ENOMEM;
@@ -111,7 +111,7 @@ int boojum_sync_sxor_upd(boojum_alloc_leaf_ctx *aleaf) {
     kp = key[0];
     kpp = key[1];
     mp = aleaf->m;
-    mp_end = mp + aleaf->m_size;
+    mp_end = mp + aleaf->u_size;
 
     while (mp != mp_end) {
         *mp = *mp ^ *kp ^ *kpp;
@@ -120,7 +120,7 @@ int boojum_sync_sxor_upd(boojum_alloc_leaf_ctx *aleaf) {
         mp++;
     }
 
-    kryptos_freeseg(aleaf->r, aleaf->m_size * 3);
+    kryptos_freeseg(aleaf->r, aleaf->u_size * 3);
     aleaf->r = r;
     r = NULL;
 
@@ -129,15 +129,15 @@ int boojum_sync_sxor_upd(boojum_alloc_leaf_ctx *aleaf) {
 boojum_sync_sxor_upd_epilogue:
 
     if (r == NULL) {
-        kryptos_freeseg(r, aleaf->m_size * 3);
+        kryptos_freeseg(r, aleaf->u_size * 3);
     }
 
     if (key[0] == NULL) {
-        kryptos_freeseg(key[0], aleaf->m_size);
+        kryptos_freeseg(key[0], aleaf->u_size);
     }
 
     if (key[1] == NULL) {
-        kryptos_freeseg(key[1], aleaf->m_size);
+        kryptos_freeseg(key[1], aleaf->u_size);
     }
 
     key[0] = key[1] =

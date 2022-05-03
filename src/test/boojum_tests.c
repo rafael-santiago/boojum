@@ -29,14 +29,16 @@ CUTE_TEST_CASE(boojum_alloc_free_tests)
     CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
     segment = boojum_alloc(1024);
     CUTE_ASSERT(segment != NULL);
-    boojum_free(segment);
+    CUTE_ASSERT(boojum_free(segment) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_set_get_tests)
+    int yes = g_cute_leak_check;
     char *segment = NULL;
     char *plain = NULL;
     size_t plain_size = 0;
+    g_cute_leak_check = 0;
     CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
     segment = boojum_alloc(6);
     CUTE_ASSERT(segment != NULL);
@@ -54,6 +56,8 @@ CUTE_TEST_CASE(boojum_set_get_tests)
     CUTE_ASSERT(plain_size == 6);
     CUTE_ASSERT(memcmp(plain, "foobar", 6) == 0);
     free(plain);
+    // INFO(Rafael): Since it is a C library it is up to users free everything they have allocated.
+    CUTE_ASSERT(boojum_free(segment) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
-    sleep(2);
+    g_cute_leak_check = yes;
 CUTE_TEST_CASE_END

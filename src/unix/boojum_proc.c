@@ -2,7 +2,9 @@
 #include <boojum_btree.h>
 #include <kryptos.h>
 #include <pthread.h>
-#include <pthread_np.h>
+#if defined(__FreeBSD__)
+# include <pthread_np.h>
+#endif
 #include <errno.h>
 #include <unistd.h>
 

@@ -20,19 +20,22 @@ boojum-tests.prologue() {
     $includes = hefesto.sys.get_option("includes");
     $libraries = hefesto.sys.get_option("libraries");
 
-    $sources.ls(".*\\.c$");
-    if ($curr_toolset.match("^clang-") > 0 ||
-        $curr_toolset.match("^gcc-") > 0) {
-        $ldflags.add_item("-lcutest");
-        $ldflags.add_item("-lkryptos");
-        $ldflags.add_item("-lboojum");
-    }
-
     var os type string;
     $os = hefesto.sys.os_name();
     if ($os == "freebsd") {
         $ldflags.add_item("-lexecinfo");
         $ldflags.add_item("-lpthread");
+    } else if ($os == "linux") {
+        $ldflags.add_item("-lpthread");
+        $ldflags.add_item("-ldl");
+    }
+
+    $sources.ls(".*\\.c$");
+    if ($curr_toolset.match("^clang-") > 0 ||
+        $curr_toolset.match("^gcc-") > 0) {
+        $ldflags.add_item("-lcutest");
+        $ldflags.add_item("-lboojum");
+        $ldflags.add_item("-lkryptos");
     }
 
     $target = "boojum-tests";
