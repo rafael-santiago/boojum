@@ -13,9 +13,9 @@ function get_app_toolset() : result type string {
 }
 
 function get_current_toolset() : result type string {
-#    if (has_gcc()) {
-#        result "gcc";
-#    }
+    if (has_gcc()) {
+        result "gcc";
+    }
     if (has_clang()) {
         result "clang";
     }
