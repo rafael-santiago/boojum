@@ -70,3 +70,47 @@ CUTE_TEST_CASE(boojum_set_get_tests)
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
     g_cute_leak_check = yes;
 CUTE_TEST_CASE_END
+
+CUTE_TEST_CASE(boojum_alloc_realloc_free_tests)
+    int yes = g_cute_leak_check;
+    char *old = NULL, *new = NULL;
+    char *data = NULL;
+    size_t data_size = 0;
+    g_cute_leak_check = 0;
+    CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
+    old = boojum_alloc(3);
+    CUTE_ASSERT(old != NULL);
+    CUTE_ASSERT(boojum_realloc(NULL, 6) == NULL);
+    CUTE_ASSERT(boojum_realloc(old, 0) == NULL);
+    new = boojum_realloc(old, 6);
+    CUTE_ASSERT(new != NULL && new != old);
+    CUTE_ASSERT(boojum_free(new) == EXIT_SUCCESS);
+    data = (char *)malloc(3);
+    CUTE_ASSERT(data != NULL);
+    memcpy(data, "foo", 3);
+    data_size = 3;
+    old = boojum_alloc(3);
+    CUTE_ASSERT(old != NULL);
+    CUTE_ASSERT(boojum_set(old, data, &data_size) == EXIT_SUCCESS);
+    free(data);
+    new = boojum_realloc(old, 6);
+    CUTE_ASSERT(new != NULL && new != old);
+    data = boojum_get(new, &data_size);
+    CUTE_ASSERT(data != NULL);
+    CUTE_ASSERT(data_size == 3);
+    CUTE_ASSERT(memcmp(data, "foo", 3) == 0);
+    free(data);
+    data = (char *)malloc(6);
+    CUTE_ASSERT(data != NULL);
+    memcpy(data, "foobar", 6);
+    data_size = 6;
+    CUTE_ASSERT(boojum_set(new, data, &data_size) == EXIT_SUCCESS);
+    free(data);
+    data = boojum_get(new, &data_size);
+    CUTE_ASSERT(data != NULL);
+    CUTE_ASSERT(data_size == 6);
+    CUTE_ASSERT(memcmp(data, "foobar", 6) == 0);
+    free(data);
+    CUTE_ASSERT(boojum_free(new) == EXIT_SUCCESS);
+    CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
+CUTE_TEST_CASE_END

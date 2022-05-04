@@ -11,6 +11,8 @@ void *boojum_alloc(const size_t ssize);
 
 int boojum_free(void *ptr);
 
+void *boojum_realloc(void *ptr, const size_t ssize);
+
 int boojum_set(void *ptr, void *data, size_t *data_size);
 
 void *boojum_get(const void *ptr, size_t *data_size);

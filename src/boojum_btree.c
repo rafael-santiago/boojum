@@ -279,16 +279,16 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
 
     aleaf = (boojum_alloc_leaf_ctx *)alp->d;
 
-    if (aleaf->m_size == 0) {
+    if (aleaf->u_size == 0) {
         *size = 0;
         goto boojum_get_data_epilogue;
     }
 
-    if ((data = (kryptos_u8_t *)kryptos_newseg(aleaf->m_size)) == NULL) {
+    if ((data = (kryptos_u8_t *)kryptos_newseg(aleaf->u_size)) == NULL) {
         goto boojum_get_data_epilogue;
     }
 
-    *size = aleaf->m_size;
+    *size = aleaf->u_size;
 
     // INFO(Rafael): We could create a function capable of unmask the original data,
     //               but since it is about computers it can fail when masking data
@@ -300,11 +300,11 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
     //               greater than aleaf->m_size. If it has not, the program has a bug,
     //               and it must "explode" during tests warning up us.
 
-    key = kryptos_hkdf(aleaf->r, aleaf->m_size,
+    key = kryptos_hkdf(aleaf->r, aleaf->u_size,
                        sha3_512,
-                       aleaf->r + aleaf->m_size, aleaf->m_size,
-                       aleaf->r + (aleaf->m_size << 1), aleaf->m_size,
-                       aleaf->m_size);
+                       aleaf->r + aleaf->u_size, aleaf->u_size,
+                       aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
+                       aleaf->u_size);
 
     if (key == NULL) {
         kryptos_freeseg(data, *size);
@@ -315,7 +315,7 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
 
     kp = key;
     p = data;
-    p_end = p + aleaf->m_size;
+    p_end = p + aleaf->u_size;
     mp = (kryptos_u8_t *)aleaf->m;
 
     // INFO(Rafael): Let's avoid spreading this sensitive information
@@ -331,7 +331,7 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
 boojum_get_data_epilogue:
 
     if (key != NULL) {
-        kryptos_freeseg(key, aleaf->m_size);
+        kryptos_freeseg(key, aleaf->u_size);
     }
 
     alp = NULL;

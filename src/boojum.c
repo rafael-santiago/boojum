@@ -124,6 +124,52 @@ int boojum_free(void *ptr) {
     return err;
 }
 
+void *boojum_realloc(void *ptr, const size_t ssize) {
+    // INFO(Rafael): Different from the original realloc, this function
+    //               will always return a new segment address. This make
+    //               the operation more easy besides make more random
+    //               the data storage. Enhancing the data protection idea.
+    void *data = NULL;
+    size_t data_size = 0;
+    void *n_ptr = NULL;
+
+    if (ssize == 0 || ptr == NULL || gBoojumCtx == NULL) {
+        return NULL;
+    }
+
+    data = boojum_get(ptr, &data_size);
+
+    if ((n_ptr = boojum_alloc(ssize)) == NULL) {
+        goto boojum_realloc_epilogue;
+    }
+
+    if (data != NULL &&
+        boojum_set(n_ptr, data, &data_size) != EXIT_SUCCESS) {
+        boojum_free(n_ptr);
+        n_ptr = NULL;
+        goto boojum_realloc_epilogue;
+    }
+
+    if (boojum_free(ptr) != EXIT_SUCCESS) {
+        boojum_free(n_ptr);
+        n_ptr = NULL;
+        goto boojum_realloc_epilogue;
+    }
+
+    ptr = NULL;
+
+boojum_realloc_epilogue:
+
+    if (data != NULL) {
+        kryptos_freeseg(data, data_size);
+    }
+
+    data = NULL;
+    data_size = 0;
+
+    return n_ptr;
+}
+
 int boojum_set(void *ptr, void *data, size_t *data_size) {
     int err = EFAULT;
 
