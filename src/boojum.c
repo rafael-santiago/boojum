@@ -38,8 +38,6 @@ int boojum_init(const size_t kupd_timeout_in_msecs) {
     gBoojumCtx->kupd = 0;
     gBoojumCtx->kupd_in_msecs = kupd_timeout_in_msecs;
     gBoojumCtx->alloc_tree = NULL;
-    gBoojumCtx->kupd_in_msecs = 1000; // INFO(Rafael): I have been using the default suggested in the original paper
-                                      //               for the xor maskings update, 1 second.
     gBoojumCtx->kupd_enabled = 0;
 
     if ((err = boojum_run_kupd_job(&gBoojumCtx->kupd,
@@ -127,8 +125,11 @@ int boojum_free(void *ptr) {
 void *boojum_realloc(void *ptr, const size_t ssize) {
     // INFO(Rafael): Different from the original realloc, this function
     //               will always return a new segment address. This make
-    //               the operation more easy besides make more random
+    //               the operation more easy besides making more random
     //               the data storage. Enhancing the data protection idea.
+    //               We will making it more difuse by spreading it along
+    //               the memory, turning into more harder the data search
+    //               on an attacking attempt.
     void *data = NULL;
     size_t data_size = 0;
     void *n_ptr = NULL;
