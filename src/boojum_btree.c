@@ -152,7 +152,7 @@ static int boojum_update_xor_maskings_iter(boojum_alloc_branch_ctx **alloc_tree)
         err = boojum_update_xor_maskings_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->l);
     }
 
-    if (err == EXIT_SUCCESS && (*alloc_tree)->r != NULL) {
+    if (err == EXIT_SUCCESS && /*alloc_tree != NULL && *alloc_tree != NULL &&*/ (*alloc_tree)->r != NULL) {
         err = boojum_update_xor_maskings_iter((boojum_alloc_branch_ctx **)&(*alloc_tree)->r);
     }
 

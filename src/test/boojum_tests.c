@@ -10,26 +10,26 @@
 //               spot where memory leak could be harmful.
 
 CUTE_TEST_CASE(boojum_init_tests)
-    int yes = g_cute_leak_check;
+    int status = g_cute_leak_check;
     CUTE_ASSERT(boojum_init(0) == EINVAL);
     g_cute_leak_check = 0;
     CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
-    g_cute_leak_check = yes;
+    g_cute_leak_check = status;
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_deinit_tests)
-    int yes = g_cute_leak_check;
+    int status = g_cute_leak_check;
     CUTE_ASSERT(boojum_deinit() == EINVAL);
     g_cute_leak_check = 0;
     CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
-    g_cute_leak_check = yes;
+    g_cute_leak_check = status;
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_alloc_free_tests)
-    int yes = g_cute_leak_check;
+    int status = g_cute_leak_check;
     char *segment = NULL;
     g_cute_leak_check = 0;
     segment = boojum_alloc(1024);
@@ -39,11 +39,11 @@ CUTE_TEST_CASE(boojum_alloc_free_tests)
     CUTE_ASSERT(segment != NULL);
     CUTE_ASSERT(boojum_free(segment) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
-    g_cute_leak_check = yes;
+    g_cute_leak_check = status;
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_set_get_tests)
-    int yes = g_cute_leak_check;
+    int status = g_cute_leak_check;
     char *segment = NULL;
     char *plain = NULL;
     size_t plain_size = 0;
@@ -68,11 +68,11 @@ CUTE_TEST_CASE(boojum_set_get_tests)
     // INFO(Rafael): Since it is a C library it is up to users free everything they have allocated.
     CUTE_ASSERT(boojum_free(segment) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
-    g_cute_leak_check = yes;
+    g_cute_leak_check = status;
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_alloc_realloc_free_tests)
-    int yes = g_cute_leak_check;
+    int status = g_cute_leak_check;
     char *old = NULL, *new = NULL;
     char *data = NULL;
     size_t data_size = 0;
@@ -113,4 +113,37 @@ CUTE_TEST_CASE(boojum_alloc_realloc_free_tests)
     free(data);
     CUTE_ASSERT(boojum_free(new) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
+    g_cute_leak_check = status;
+CUTE_TEST_CASE_END
+
+CUTE_TEST_CASE(boojum_set_timed_get_tests)
+    char *data = NULL;
+    size_t data_size = 0;
+    char *segment = NULL;
+    int status = g_cute_leak_check;
+    g_cute_leak_check = 0;
+    CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
+    segment = boojum_alloc(6);
+    CUTE_ASSERT(segment != NULL);
+    data = (char *)malloc(6);
+    CUTE_ASSERT(data != NULL);
+    data_size = 6;
+    memcpy(data, "secret", data_size);
+    CUTE_ASSERT(boojum_set(segment, data, &data_size) == EXIT_SUCCESS);
+    CUTE_ASSERT(data_size == 0);
+    CUTE_ASSERT(memcmp(data, "\x0\x0\x0\x0\x0\x0", 6) == 0);
+    free(data);
+    data = boojum_timed_get(segment, &data_size, 1000);
+    CUTE_ASSERT(data_size == 6);
+    CUTE_ASSERT(data != NULL);
+    CUTE_ASSERT(memcmp(data, "secret", data_size) == 0);
+#if defined(__unix__)
+    sleep(3);
+#else
+# error Some code wanted.
+#endif
+    CUTE_ASSERT(data_size == 0);
+    CUTE_ASSERT(boojum_free(segment) == EXIT_SUCCESS);
+    CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
+    g_cute_leak_check = status;
 CUTE_TEST_CASE_END

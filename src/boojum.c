@@ -41,6 +41,7 @@ int boojum_init(const size_t kupd_timeout_in_msecs) {
     gBoojumCtx->kupd_enabled = 0;
 
     if ((err = boojum_run_kupd_job(&gBoojumCtx->kupd,
+                                   &gBoojumCtx->giant_lock,
                                    &gBoojumCtx->alloc_tree,
                                    gBoojumCtx->kupd_in_msecs,
                                    &gBoojumCtx->kupd_enabled)) != EXIT_SUCCESS) {
@@ -68,10 +69,6 @@ int boojum_deinit(void) {
             gBoojumCtx = NULL;
         }
     }
-
-#if defined(__unix__)
-    usleep(1000);
-#endif
 
     return err;
 }
@@ -212,7 +209,7 @@ void *boojum_get(const void *ptr, size_t *data_size) {
 void *boojum_timed_get(const void *ptr, size_t *data_size, const size_t ttv) {
     void *data = boojum_get(ptr, data_size);
 
-    if (data != NULL && boojum_sched_data_wiping(data, *data_size, ttv) != EXIT_SUCCESS) {
+    if (data != NULL && boojum_sched_data_wiping(data, data_size, ttv) != EXIT_SUCCESS) {
         kryptos_freeseg(data, *data_size);
         *data_size = 0;
         data = NULL;

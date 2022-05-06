@@ -13,4 +13,6 @@ CUTE_DECLARE_TEST_CASE(boojum_set_get_tests);
 
 CUTE_DECLARE_TEST_CASE(boojum_alloc_realloc_free_tests);
 
+CUTE_DECLARE_TEST_CASE(boojum_set_timed_get_tests);
+
 #endif

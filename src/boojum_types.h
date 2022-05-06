@@ -81,11 +81,13 @@ struct boojum_data_wiper_ctx {
     boojum_thread thread;
     size_t time_to_vanish;
     void *data;
-    size_t data_size;
+    size_t *data_size;
+    int enabled;
 };
 
 struct boojum_kupd_ctx {
     boojum_thread *thread;
+    boojum_mutex *giant_lock;
     boojum_alloc_branch_ctx **alloc_tree;
     size_t keys_expiration_time;
     int *enabled;
