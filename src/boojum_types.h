@@ -86,6 +86,19 @@ struct boojum_data_wiper_ctx {
 };
 
 struct boojum_kupd_ctx {
+    // INFO(Rafael): This context gathers all information relevant to make key xor maskings updating job work on.
+    //
+    //               - thread holds the reference for the current execution line into the system.
+    //
+    //               - giant_lock is the same lock used by main library entry points that edits user's allocations.
+    //                 btw until now Boojum counts only with "giant" lock.
+    //
+    //               - alloc_tree is the binary tree that expresses all masked memory segments allocated by the user.
+    //
+    //               - keys expiration time is the "time to vanish", the time that a mask lasts over the memory segment,
+    //                 the original paper and Cryptography Engineering book suggests 1 second.
+    //
+    //               - enabled it indicates that the current masking update thread is really running.
     boojum_thread *thread;
     boojum_mutex *giant_lock;
     boojum_alloc_branch_ctx **alloc_tree;
