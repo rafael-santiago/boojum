@@ -1,7 +1,12 @@
 #include "boojum_tests.h"
 #include <boojum.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdint.h>
 #include <string.h>
+#include <ctype.h>
+
+static void print_segment_data(const void *segment, const size_t segment_size);
 
 // WARN(Rafael): libcutest's memory leak detector have been disabled for all main boojum's entry points
 //               because it depends on pthread conveniences and it by default leaks some resources even
@@ -147,3 +152,58 @@ CUTE_TEST_CASE(boojum_set_timed_get_tests)
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
     g_cute_leak_check = status;
 CUTE_TEST_CASE_END
+
+CUTE_TEST_CASE(boojum_kupd_assurance_tests)
+#define MAS_EH_CLARO "S.B.B.H.K.K! S.B.B.H.K.K! Aqui é o Chapolin Colorado falando à Terra!"
+    char *segment = NULL;
+    char *data = NULL;
+    size_t data_size;
+    const size_t eavesdrop_attempts_nr = 50;
+    int status = g_cute_leak_check;
+    size_t e;
+    g_cute_leak_check = 0;
+    CUTE_ASSERT(boojum_init(1000) == EXIT_SUCCESS);
+    data_size = strlen(MAS_EH_CLARO);
+    data = (char *)malloc(data_size);
+    CUTE_ASSERT(data != NULL);
+    memcpy(data, MAS_EH_CLARO, data_size);
+    segment = boojum_alloc(data_size);
+    CUTE_ASSERT(segment != NULL);
+    CUTE_ASSERT(boojum_set(segment, data, &data_size) == EXIT_SUCCESS);
+    CUTE_ASSERT(data_size == 0);
+    CUTE_ASSERT(data[0] == 0);
+    data_size = strlen(MAS_EH_CLARO);
+    fprintf(stdout, "Now eavesdropping masked segment... wait...");
+    //sleep(2);
+    for (e = 0; e < eavesdrop_attempts_nr; e++) {
+        CUTE_ASSERT(memcmp(segment, MAS_EH_CLARO, data_size) != 0);
+        memcpy(data, segment, data_size);
+        sleep(2);
+        CUTE_ASSERT(memcmp(segment, data, data_size) != 0);
+        fprintf(stdout, "\r                                                                                 "
+                        "                            \r"
+                        "[%.f%% of the test was completed]", (((double)e + 1) / (double)eavesdrop_attempts_nr) * 100);
+        fprintf(stdout, " Masked segment last status: ");
+        print_segment_data(data, 8);
+
+    }
+    fprintf(stdout, "\r                                                                                     "
+                    "                               \r");
+    free(data);
+    data = NULL;
+    CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
+    g_cute_leak_check = status;
+#undef MAS_EH_CLARO
+CUTE_TEST_CASE_END
+
+static void print_segment_data(const void *segment, const size_t segment_size) {
+    const unsigned char *sp = (const unsigned char *)segment;
+    const unsigned char *sp_end = sp + segment_size;
+    const char token[2] = { 0, ',' };
+    fprintf(stdout, " 0x%p..%.2X = { ", segment, ((uintptr_t)segment & 0xFF) + segment_size);
+    while (sp != sp_end) {
+        fprintf(stdout, "%.2X%c ", *sp, token[(sp + 1) != sp_end]);
+        sp++;
+    }
+    fprintf(stdout, "};");
+}

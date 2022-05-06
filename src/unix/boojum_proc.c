@@ -174,12 +174,11 @@ static void *boojum_data_wiper(void *arg) {
 
 static void *boojum_kupd_job(void *arg) {
     struct boojum_kupd_ctx *kupd = (struct boojum_kupd_ctx *)arg;
-
     if (kupd != NULL && kupd->giant_lock != NULL && kupd->enabled != NULL && kupd->alloc_tree != NULL) {
         *kupd->enabled = 1;
         while (*kupd->enabled) {
             if (boojum_mutex_lock(kupd->giant_lock) == EXIT_SUCCESS) {
-                // TODO(Rafael): What if it has failed? What to effectively do? :-\
+                // TODO(Rafael): What if it has failed? What to effectively do?
                 boojum_update_xor_maskings(kupd->alloc_tree);
                 boojum_mutex_unlock(kupd->giant_lock);
             }

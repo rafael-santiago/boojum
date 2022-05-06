@@ -10,6 +10,7 @@ CUTE_TEST_CASE(boojum_tests)
     CUTE_RUN_TEST(boojum_set_get_tests);
     CUTE_RUN_TEST(boojum_alloc_realloc_free_tests);
     CUTE_RUN_TEST(boojum_set_timed_get_tests);
+    CUTE_RUN_TEST(boojum_kupd_assurance_tests);
 CUTE_TEST_CASE_END
 
 CUTE_MAIN(boojum_tests)
