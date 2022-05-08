@@ -5,6 +5,10 @@
 # include <pthread.h>
  typedef pthread_mutex_t boojum_mutex;
  typedef pthread_t boojum_thread;
+#elif defined(_WIN32)
+# include <windows.h>
+ typedef HANDLE boojum_mutex;
+ typedef HANDLE boojum_thread;
 #else
 # error Some code wanted.
 #endif

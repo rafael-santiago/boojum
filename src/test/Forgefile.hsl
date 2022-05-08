@@ -41,6 +41,7 @@ boojum-tests.prologue() {
     $target = "boojum-tests";
 
     if ($os == "windows") {
+        $ldflags.add_item("-lbcrypt");
         $target = $target + ".exe";
     }
 }

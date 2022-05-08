@@ -28,6 +28,11 @@ boojum.prologue() {
         $srcs.ls(".*\\.c$");
         $deps = $deps + get_c_cpp_deps();
         hefesto.sys.cd("..");
+    } else if (hefesto.sys.os_name() == "windows") {
+        hefesto.sys.cd("windows");
+        $srcs.ls(".*\\.c$");
+        $deps = $deps + get_c_cpp_deps();
+        hefesto.sys.cd("..");
     }
     $incs = hefesto.sys.get_option("includes");
 

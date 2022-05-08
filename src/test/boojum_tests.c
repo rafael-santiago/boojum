@@ -1,5 +1,8 @@
 #include "boojum_tests.h"
 #include <boojum.h>
+#if defined(_WIN32)
+# include <windows.h>
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -144,6 +147,8 @@ CUTE_TEST_CASE(boojum_set_timed_get_tests)
     CUTE_ASSERT(memcmp(data, "secret", data_size) == 0);
 #if defined(__unix__)
     sleep(3);
+#elif defined(_WIN32)
+    Sleep(3000);
 #else
 # error Some code wanted.
 #endif
@@ -182,8 +187,8 @@ CUTE_TEST_CASE(boojum_kupd_assurance_tests)
         CUTE_ASSERT(memcmp(segment, data, data_size) != 0);
         fprintf(stdout, "\r                                                                                 "
                         "                            \r"
-                        "[%.f%% of the test was completed]", (((double)e + 1) / (double)eavesdrop_attempts_nr) * 100);
-        fprintf(stdout, " Masked segment last status: ");
+                        "[%2.f%% completed]", (((double)e + 1) / (double)eavesdrop_attempts_nr) * 100);
+        fprintf(stdout, " Masked memory segment last status: ");
         print_segment_data(data, 8);
 
     }
