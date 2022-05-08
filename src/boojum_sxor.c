@@ -132,11 +132,11 @@ boojum_sync_sxor_upd_epilogue:
         kryptos_freeseg(r, aleaf->u_size * 3);
     }
 
-    if (key[0] == NULL) {
+    if (key[0] != NULL) {
         kryptos_freeseg(key[0], aleaf->u_size);
     }
 
-    if (key[1] == NULL) {
+    if (key[1] != NULL) {
         kryptos_freeseg(key[1], aleaf->u_size);
     }
 

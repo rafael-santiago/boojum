@@ -360,6 +360,7 @@ static void boojum_free_alloc_leaf_ctx(boojum_alloc_leaf_ctx *leaf) {
         kryptos_freeseg(leaf->r, leaf->u_size * 3);
     }
 
+    leaf->m = leaf->r = NULL;
     leaf->m_size = 0;
     leaf->u_size = 0;
     kryptos_freeseg(leaf, sizeof(boojum_alloc_leaf_ctx));

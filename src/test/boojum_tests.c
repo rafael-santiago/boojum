@@ -14,8 +14,10 @@ static void print_segment_data(const void *segment, const size_t segment_size);
 // WARN(Rafael): libcutest's memory leak detector have been disabled for all main boojum's entry points
 //               because it depends on pthread conveniences and it by default leaks some resources even
 //               when taking care of requesting it for do not leak nothing... Anyway, all btree tests
-//               are being executed with memory leak detector tuned on. In Boojum this is the main
+//               are being executed with memory leak detector turned on. In Boojum this is the main
 //               spot where memory leak could be harmful.
+//
+//               WINAPI also leaks some resources related to multi-threading stuff.
 
 CUTE_TEST_CASE(boojum_init_tests)
     int status = g_cute_leak_check;
@@ -196,6 +198,7 @@ CUTE_TEST_CASE(boojum_kupd_assurance_tests)
                     "                               \r");
     free(data);
     data = NULL;
+    CUTE_ASSERT(boojum_free(segment) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_deinit() == EXIT_SUCCESS);
     g_cute_leak_check = status;
 #undef MAS_EH_CLARO
@@ -205,9 +208,13 @@ static void print_segment_data(const void *segment, const size_t segment_size) {
     const unsigned char *sp = (const unsigned char *)segment;
     const unsigned char *sp_end = sp + segment_size;
     const char token[2] = { 0, ',' };
+#if defined(_WIN32)
     fprintf(stdout, " 0x%p..%.2X = { ", segment, ((uintptr_t)segment & 0xFF) + segment_size);
+#else
+    fprintf(stdout, " %p..%.2x = { ", segment, ((uintptr_t)segment & 0xFF) + segment_size);
+#endif
     while (sp != sp_end) {
-        fprintf(stdout, "%.2X%c ", *sp, token[(sp + 1) != sp_end]);
+        fprintf(stdout, "%.2x%c ", *sp, token[(sp + 1) != sp_end]);
         sp++;
     }
     fprintf(stdout, "};");
