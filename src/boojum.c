@@ -58,7 +58,9 @@ int boojum_deinit(void) {
         return EINVAL;
     }
 
-    gBoojumCtx->kupd_enabled = 0;
+    if (boojum_set_flag(&gBoojumCtx->kupd_enabled, 0, &gBoojumCtx->giant_lock) != EXIT_SUCCESS) {
+        fprintf(stderr, "Boojum error: Unable to disable KUPD thread.\n");
+    }
     boojum_thread_join(&gBoojumCtx->kupd);
 
     if ((err = boojum_mutex_lock(&gBoojumCtx->giant_lock)) == EXIT_SUCCESS) {

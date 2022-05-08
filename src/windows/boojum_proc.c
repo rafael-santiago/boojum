@@ -19,7 +19,7 @@ int boojum_init_thread(boojum_thread *thread) {
     if (thread == NULL) {
         return EXIT_FAILURE;
     }
-    
+
     return EXIT_SUCCESS;
 }
 
@@ -27,9 +27,9 @@ int boojum_deinit_mutex(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    
+
     CloseHandle(*mtx);
-    
+
     return EXIT_SUCCESS;
 }
 
@@ -37,19 +37,19 @@ int boojum_deinit_thread(boojum_thread *thread) {
     if (thread == NULL) {
         return EXIT_FAILURE;
     }
-    
+
     return EXIT_SUCCESS;
 }
 
 int boojum_mutex_lock(boojum_mutex *mtx) {
     DWORD wait_status = 0;
-    
+
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    
+
     wait_status = WaitForSingleObject(*mtx, INFINITE);
-    
+
     return (wait_status == WAIT_OBJECT_0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -57,7 +57,7 @@ int boojum_mutex_unlock(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    
+
     return ReleaseMutex(*mtx) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -65,11 +65,11 @@ int boojum_thread_join(boojum_thread *thread) {
     if (thread == NULL) {
         return EINVAL;
     }
-    
+
     if (WaitForSingleObject(*thread, INFINITE) == WAIT_FAILED) {
         return EXIT_FAILURE;
     }
-    
+
     return EXIT_SUCCESS;
 }
 
@@ -97,7 +97,7 @@ int boojum_sched_data_wiping(void *data, size_t *data_size, const size_t ttv) {
         goto boojum_sched_data_wiping_epilogue;
     }
 
-    while (!dw->enabled && ntry-- > 0) {
+    while (!boojum_get_flag(&dw->enabled, &dw->lock) && ntry-- > 0) {
         Sleep(1);
     }
 
@@ -147,7 +147,7 @@ int boojum_run_kupd_job(boojum_thread *thread,
         goto boojum_run_kupd_job_epilogue;
     }
 
-    while (ntry-- > 0 && *enabled_flag == 0) {
+    while (ntry-- > 0 && boojum_get_flag(enabled_flag, giant_lock) == 0) {
         Sleep(10);
     }
 
@@ -168,7 +168,9 @@ static DWORD WINAPI boojum_data_wiper(LPVOID arg) {
     struct boojum_data_wiper_ctx *dw = (struct boojum_data_wiper_ctx *)arg;
 
     if (dw != NULL && dw->data != NULL && dw->data_size != NULL && *dw->data_size > 0) {
-        dw->enabled = 1;
+        if (boojum_set_flag(&dw->enabled, 1, &dw->lock) != EXIT_SUCCESS) {
+            fprintf(stderr, "Boojum error: Unable to set data wiper thread enabled.\n");
+        }
         Sleep(dw->time_to_vanish);
         kryptos_freeseg(dw->data, *dw->data_size);
         *dw->data_size = 0;
@@ -182,8 +184,12 @@ static DWORD WINAPI boojum_data_wiper(LPVOID arg) {
 static DWORD WINAPI boojum_kupd_job(LPVOID arg) {
     struct boojum_kupd_ctx *kupd = (struct boojum_kupd_ctx *)arg;
     if (kupd != NULL && kupd->giant_lock != NULL && kupd->enabled != NULL && kupd->alloc_tree != NULL) {
-        *kupd->enabled = 1;
-        while (*kupd->enabled) {
+        if (boojum_set_flag(kupd->enabled, 1, kupd->giant_lock) != EXIT_SUCCESS) {
+            fprintf(stderr, "Boojum error: Unable to set KUPD thread enabled.\n");
+            //pthread_exit(NULL);
+            return EXIT_ERROR;
+        }
+        while (boojum_get_flag(kupd->enabled, kupd->giant_lock)) {
             if (boojum_mutex_lock(kupd->giant_lock) == EXIT_SUCCESS) {
                 // TODO(Rafael): What if it has failed? What to effectively do?
                 boojum_update_xor_maskings(kupd->alloc_tree);
@@ -193,7 +199,7 @@ static DWORD WINAPI boojum_kupd_job(LPVOID arg) {
         }
         kryptos_freeseg(kupd, sizeof(struct boojum_kupd_ctx));
     }
-    
+
     return 0;
 }
 

@@ -1,5 +1,6 @@
 #include "boojum_tests.h"
 #include <boojum.h>
+#include <boojum_proc.h>
 #if defined(_WIN32)
 # include <windows.h>
 #endif
@@ -182,10 +183,21 @@ CUTE_TEST_CASE(boojum_kupd_assurance_tests)
     data_size = strlen(MAS_EH_CLARO);
     fprintf(stdout, "Now eavesdropping masked segment... wait...");
     for (e = 0; e < eavesdrop_attempts_nr; e++) {
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // WARN(Rafael): In normal conditions Boojum users should never direct access protected data,       !!
+        //               but here we need to do it. Since access data read/written by concurrent process    !!
+        //               can cause undefined behaviors, race conditions etc, here we are going to hold the  !!
+        //               mutex we internally use to synchronize the things out. In this way those local     !!
+        //               readings cannot cause unstability inside the library.                              !!
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        CUTE_ASSERT(boojum_mutex_lock(&gBoojumCtx->giant_lock) == EXIT_SUCCESS);
         CUTE_ASSERT(memcmp(segment, MAS_EH_CLARO, data_size) != 0);
         memcpy(data, segment, data_size);
+        CUTE_ASSERT(boojum_mutex_unlock(&gBoojumCtx->giant_lock) == EXIT_SUCCESS);
         sleep(2);
+        CUTE_ASSERT(boojum_mutex_lock(&gBoojumCtx->giant_lock) == EXIT_SUCCESS);
         CUTE_ASSERT(memcmp(segment, data, data_size) != 0);
+        CUTE_ASSERT(boojum_mutex_unlock(&gBoojumCtx->giant_lock) == EXIT_SUCCESS);
         fprintf(stdout, "\r                                                                                 "
                         "                            \r"
                         "[%2.f%% completed]", (((double)e + 1) / (double)eavesdrop_attempts_nr) * 100);

@@ -27,4 +27,8 @@ int boojum_run_kupd_job(boojum_thread *thread,
                         const size_t key_expiration_time,
                         int *enabled_flag);
 
+int boojum_get_flag(const int *flag, boojum_mutex *mtx);
+
+int boojum_set_flag(int *flag, const int value, boojum_mutex *mtx);
+
 #endif

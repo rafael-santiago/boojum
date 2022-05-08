@@ -83,6 +83,7 @@ struct boojum_data_wiper_ctx {
     //
     //               - data_size expresses the size (in bytes) of the data pointed by data pointer.
     boojum_thread thread;
+    boojum_mutex lock;
     size_t time_to_vanish;
     void *data;
     size_t *data_size;
