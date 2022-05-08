@@ -3,6 +3,7 @@ include ~/toolsets/gcc/gcc-app.hsl
 include ~/toolsets/clang/clang-lib.hsl
 include ~/toolsets/clang/clang-app.hsl
 include ~/fsutil.hsl
+include ~/conv.hsl
 
 function get_lib_toolset() : result type string {
     result get_current_toolset() + "-c-lib";
@@ -13,6 +14,11 @@ function get_app_toolset() : result type string {
 }
 
 function get_current_toolset() : result type string {
+    var option type list;
+    $option = hefesto.sys.get_option("toolset");
+    if ($option.count() > 0) {
+        result $option.item(0);
+    }
     if (has_gcc()) {
         result "gcc";
     }
@@ -111,4 +117,27 @@ local function runbk(cmd type string) : result type int {
         result hefesto.sys.run($cmd + ">/dev/null 2>&1");
     }
     result hefesto.sys.run($cmd + ">nul 2>&1");
+}
+
+function has_valgrind() : result type int {
+    result (runbk("valgrind --version") == 0);
+}
+
+function get_memleak_total_by_valgrind(filepath type string) : result type int {
+    var leak_total type int;
+    var lines type list;
+    $leak_total = 0;
+    $lines = hefesto.sys.lines_from_file($filepath, "^==.*==.*definitely lost: ");
+    if ($lines.count() > 0) {
+        var line type string;
+        $line = $lines.item(0);
+        $line.replace("^==.*==.*definitely lost: ", "");
+        $line.replace(" bytes.*$", "");
+        $line.replace(",", "");
+        $leak_total = str2int($line);
+    } else {
+        hefesto.sys.echo("PANIC: Unable to get valgrind's leak check total.\n");
+        hefesto.project.abort(1);
+    }
+    result $leak_total;
 }

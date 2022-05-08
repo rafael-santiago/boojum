@@ -51,7 +51,7 @@ boojum-tests.epilogue() {
         if (runtests() == 0) {
             hefesto.sys.echo("*** Build success.\n");
         } else {
-            hefesto.sys.echo("~~~ Build failure due to broken test(s).\n");
+            hefesto.sys.echo("~~~ Build failure due to broken test(s) or profiling error(s).\n");
         }
     } else {
         hefesto.sys.echo("~~~ Build failure.\n");
@@ -59,7 +59,20 @@ boojum-tests.epilogue() {
 }
 
 local function runtests() : result type int {
-    result hefesto.sys.run(hefesto.sys.make_path("bin", $target) + " --cutest-leak-check=yes");
+    var err type int;
+    if (has_valgrind()) {
+        $err = hefesto.sys.run("valgrind --tool=memcheck --leak-check=yes " +
+                               "--log-file=memcheck-log.txt --show-reachable=no " + hefesto.sys.make_path("bin", $target));
+        var leak_total type int;
+        $leak_total = get_memleak_total_by_valgrind("memcheck-log.txt");
+        if ($leak_total > 0) {
+            hefesto.sys.echo("WARNING: valgrind has found some memory leaks, " + $leak_total + " byte(s) leaking.\n");
+            $err = 1;
+        }
+    } else {
+        $err = hefesto.sys.run(hefesto.sys.make_path("bin", $target) + " --cutest-leak-check=yes");
+    }
+    result $err;
 }
 
 local function build_deps() : result type none {

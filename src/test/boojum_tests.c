@@ -181,7 +181,6 @@ CUTE_TEST_CASE(boojum_kupd_assurance_tests)
     CUTE_ASSERT(data[0] == 0);
     data_size = strlen(MAS_EH_CLARO);
     fprintf(stdout, "Now eavesdropping masked segment... wait...");
-    //sleep(2);
     for (e = 0; e < eavesdrop_attempts_nr; e++) {
         CUTE_ASSERT(memcmp(segment, MAS_EH_CLARO, data_size) != 0);
         memcpy(data, segment, data_size);
@@ -190,7 +189,7 @@ CUTE_TEST_CASE(boojum_kupd_assurance_tests)
         fprintf(stdout, "\r                                                                                 "
                         "                            \r"
                         "[%2.f%% completed]", (((double)e + 1) / (double)eavesdrop_attempts_nr) * 100);
-        fprintf(stdout, " Masked memory segment last status: ");
+        fprintf(stdout, " Masked memory segment's last status: ");
         print_segment_data(data, 8);
 
     }
