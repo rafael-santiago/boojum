@@ -2,6 +2,7 @@
 #include <boojum_btree.h>
 #include <kryptos.h>
 #include <errno.h>
+#include <stdio.h>
 
 static DWORD WINAPI boojum_data_wiper(LPVOID arg);
 
@@ -89,6 +90,10 @@ int boojum_sched_data_wiping(void *data, size_t *data_size, const size_t ttv) {
     dw->time_to_vanish = ttv;
     dw->enabled = 0;
 
+    if ((err = boojum_init_mutex(&dw->lock)) != EXIT_SUCCESS) {
+        goto boojum_sched_data_wiping_epilogue;
+    }
+
     dw->thread = CreateThread(NULL, 0,
                               (LPTHREAD_START_ROUTINE)boojum_data_wiper, dw,
                               0, NULL);
@@ -174,6 +179,7 @@ static DWORD WINAPI boojum_data_wiper(LPVOID arg) {
         Sleep(dw->time_to_vanish);
         kryptos_freeseg(dw->data, *dw->data_size);
         *dw->data_size = 0;
+        boojum_deinit_mutex(&dw->lock);
         kryptos_freeseg(dw, sizeof(struct boojum_data_wiper_ctx));
         dw = NULL;
     }
@@ -186,8 +192,7 @@ static DWORD WINAPI boojum_kupd_job(LPVOID arg) {
     if (kupd != NULL && kupd->giant_lock != NULL && kupd->enabled != NULL && kupd->alloc_tree != NULL) {
         if (boojum_set_flag(kupd->enabled, 1, kupd->giant_lock) != EXIT_SUCCESS) {
             fprintf(stderr, "Boojum error: Unable to set KUPD thread enabled.\n");
-            //pthread_exit(NULL);
-            return EXIT_ERROR;
+            return EXIT_FAILURE;
         }
         while (boojum_get_flag(kupd->enabled, kupd->giant_lock)) {
             if (boojum_mutex_lock(kupd->giant_lock) == EXIT_SUCCESS) {
