@@ -1,5 +1,5 @@
-#ifndef BOOJUM_TEST_BOOJUM_H
-#define BOOJUM_TEST_BOOJUM_H 1
+#ifndef BOOJUM_TEST_BOOJUM_TESTS_H
+#define BOOJUM_TEST_BOOJUM_TESTS_H 1
 
 #include <cutest.h>
 

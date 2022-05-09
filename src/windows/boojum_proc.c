@@ -20,18 +20,14 @@ int boojum_init_thread(boojum_thread *thread) {
     if (thread == NULL) {
         return EXIT_FAILURE;
     }
-
-    return EXIT_SUCCESS;
+    return  CloseHandle(*thread) ? EXIT_SUCCESS : EXIT_FAILUE;
 }
 
 int boojum_deinit_mutex(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-
-    CloseHandle(*mtx);
-
-    return EXIT_SUCCESS;
+    return CloseHandle(*mtx) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int boojum_deinit_thread(boojum_thread *thread) {
