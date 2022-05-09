@@ -78,7 +78,7 @@ int boojum_sched_data_wiping(void *data, size_t *data_size, const size_t ttv) {
     dw->data_size = data_size;
     dw->time_to_vanish = ttv;
     dw->enabled = 0;
-    if (boojum_init_mutex(&dw->lock) != EXIT_SUCCESS) {
+    if ((err = boojum_init_mutex(&dw->lock)) != EXIT_SUCCESS) {
         goto boojum_sched_data_wiping_epilogue;
     }
 
