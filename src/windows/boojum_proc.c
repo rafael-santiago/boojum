@@ -20,20 +20,22 @@ int boojum_init_thread(boojum_thread *thread) {
     if (thread == NULL) {
         return EXIT_FAILURE;
     }
-    return  CloseHandle(*thread) ? EXIT_SUCCESS : EXIT_FAILUE;
+    return  EXIT_SUCCESS;
 }
 
 int boojum_deinit_mutex(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    return CloseHandle(*mtx) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return (CloseHandle(*mtx)) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int boojum_deinit_thread(boojum_thread *thread) {
     if (thread == NULL) {
         return EXIT_FAILURE;
     }
+
+    CloseHandle(*thread);
 
     return EXIT_SUCCESS;
 }
@@ -203,4 +205,3 @@ static DWORD WINAPI boojum_kupd_job(LPVOID arg) {
 
     return 0;
 }
-

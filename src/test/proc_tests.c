@@ -82,7 +82,7 @@ CUTE_TEST_CASE(boojum_get_set_flag_tests)
         usleep(1);
     }
 #elif defined(_WIN32)
-    th = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)th_test_routine, &retval, 0, NULL);
+    th = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)th_test_get_set_routine, &th_args, 0, NULL);
     CUTE_ASSERT(th != NULL);
     while (ntry-- > 0 && boojum_get_flag(&enabled, &mtx) == 0) {
         Sleep(1);
