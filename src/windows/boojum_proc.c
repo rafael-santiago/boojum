@@ -104,7 +104,8 @@ int boojum_sched_data_wiping(void *data, size_t *data_size, const size_t ttv) {
         Sleep(1);
     }
 
-    err = (!dw->enabled) ? EXIT_FAILURE : EXIT_SUCCESS;
+    err = (!boojum_get_flag(&dw->enabled, &dw->lock)) ? EXIT_FAILURE
+                                                      : EXIT_SUCCESS;
 
 boojum_sched_data_wiping_epilogue:
 
@@ -154,7 +155,8 @@ int boojum_run_kupd_job(boojum_thread *thread,
         Sleep(10);
     }
 
-    err = (*enabled_flag == 0) ? EXIT_FAILURE : EXIT_SUCCESS;
+    err = (boojum_get_flag(enabled_flag, giant_lock) == 0) ? EXIT_FAILURE
+                                                           : EXIT_SUCCESS;
 
 boojum_run_kupd_job_epilogue:
 

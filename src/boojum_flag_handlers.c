@@ -1,4 +1,6 @@
-#include <boojum_proc.h>
+// INFO(Rafael): With C11 we have _Atomic() facilities.
+#if !defined(BOOJUM_WITH_C11)
+# include <boojum_proc.h>
 
 int boojum_get_flag(const int *flag, boojum_mutex *mtx) {
     int value = 0;
@@ -30,5 +32,4 @@ int boojum_set_flag(int *flag, const int value, boojum_mutex *mtx) {
 
     return err;
 }
-
-
+#endif // !defined(BOOJUM_WITH_C11)

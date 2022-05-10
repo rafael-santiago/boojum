@@ -11,6 +11,8 @@ CUTE_DECLARE_TEST_CASE(boojum_init_deinit_thread_tests);
 
 CUTE_DECLARE_TEST_CASE(boojum_thread_join_tests);
 
-CUTE_DECLARE_TEST_CASE(boojum_get_set_flag_tests);
+# if !defined(BOOJUM_WITH_C11)
+ CUTE_DECLARE_TEST_CASE(boojum_get_set_flag_tests);
+# endif // !defiend(BOOJUM_WITH_C11)
 
 #endif

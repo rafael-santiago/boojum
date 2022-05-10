@@ -36,6 +36,12 @@ boojum.prologue() {
     }
     $incs = hefesto.sys.get_option("includes");
 
+    var option type list;
+    $option = hefesto.sys.get_option("boojum-with-c11");
+    if ($option.count() > 0) {
+        $cflags.add_item("-DBOOJUM_WITH_C11=1");
+    }
+
     $target = "libboojum.a";
 }
 

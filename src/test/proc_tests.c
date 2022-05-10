@@ -7,12 +7,14 @@ struct th_get_set_tests_ctx {
     int done;
 };
 
-#if defined(__unix__)
-static void *th_test_routine(void *arg);
-static void *th_test_get_set_routine(void *args);
+#if defined(BOOJUM_WITH_C11)
+ static int th_test_routine(void *arg);
+#elif defined(__unix__)
+ static void *th_test_routine(void *arg);
+ static void *th_test_get_set_routine(void *args);
 #elif defined(_WIN32)
-static DWORD WINAPI th_test_routine(PVOID arg);
-static DWORD WINAPI th_test_get_set_routine(void *args);
+ static DWORD WINAPI th_test_routine(PVOID arg);
+ static DWORD WINAPI th_test_get_set_routine(void *args);
 #else
 # error Some code wanted.
 #endif
@@ -48,7 +50,9 @@ CUTE_TEST_CASE(boojum_thread_join_tests)
     int retval = 0;
     g_cute_leak_check = 0;
     CUTE_ASSERT(boojum_init_thread(&th) == EXIT_SUCCESS);
-#if defined(__unix__)
+#if defined(BOOJUM_WITH_C11)
+    CUTE_ASSERT(thrd_create(&th, th_test_routine, &retval) == thrd_success);
+#elif defined(__unix__)
     CUTE_ASSERT(pthread_create(&th, NULL, th_test_routine, &retval) == EXIT_SUCCESS);
 #elif defined(_WIN32)
     th = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)th_test_routine, &retval, 0, NULL);
@@ -62,6 +66,8 @@ CUTE_TEST_CASE(boojum_thread_join_tests)
     CUTE_ASSERT(boojum_deinit_thread(&th) == EXIT_SUCCESS);
     g_cute_leak_check = status;
 CUTE_TEST_CASE_END
+
+#if !defined(BOOJUM_WITH_C11)
 
 CUTE_TEST_CASE(boojum_get_set_flag_tests)
     int status = g_cute_leak_check;
@@ -98,7 +104,17 @@ CUTE_TEST_CASE(boojum_get_set_flag_tests)
     g_cute_leak_check = status;
 CUTE_TEST_CASE_END
 
-#if defined(__unix__)
+#endif // !defined(BOOJUM_WITH_C11)
+
+#if defined(BOOJUM_WITH_C11)
+static int th_test_routine(void * arg) {
+    int *retval = NULL;
+    thrd_sleep(&(struct timespec *){.tv_sec = 5}, NULL);
+    retal = (int *)arg;
+    *retval = 1;
+    return EXIT_SUCCESS;
+}
+#elif defined(__unix__)
 static void *th_test_routine(void *arg) {
     int *retval = NULL;
     sleep(5);
@@ -142,4 +158,4 @@ static DWORD WINAPI th_test_get_set_routine(PVOID args) {
 }
 #else
 # error Some code wanted.
-#endif
+#endif // defined(BOOJUM_WITH_C11)

@@ -1,23 +1,20 @@
 #include <boojum_proc.h>
 #include <boojum_btree.h>
 #include <kryptos.h>
-#include <pthread.h>
-#if defined(__FreeBSD__)
-# include <pthread_np.h>
-#endif
+#include <threads.h>
 #include <errno.h>
 #include <unistd.h>
 #include <stdio.h>
 
-static void *boojum_data_wiper(void *arg);
+static int boojum_data_wiper(void *arg);
 
-static void *boojum_kupd_job(void *arg);
+static int boojum_kupd_job(void *arg);
 
 int boojum_init_mutex(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    return pthread_mutex_init(mtx, NULL);
+    return (mtx_init(mtx, mtx_plain) == thrd_success) ? EXIT_SUCCES : EXIT_FAILURE;
 }
 
 int boojum_init_thread(boojum_thread *thread) {
@@ -31,7 +28,8 @@ int boojum_deinit_mutex(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    return pthread_mutex_destroy(mtx);
+    mtx_destroy(mtx);
+    return EXIT_SUCCESS;
 }
 
 int boojum_deinit_thread(boojum_thread *thread) {
@@ -45,27 +43,26 @@ int boojum_mutex_lock(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    return pthread_mutex_lock(mtx);
+    return (mtx_lock(mtx) == thrd_success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int boojum_mutex_unlock(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    return pthread_mutex_unlock(mtx);
+    return (mtx_unlock(mtx) == thrd_success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int boojum_thread_join(boojum_thread *thread) {
     if (thread == NULL) {
         return EINVAL;
     }
-    return pthread_join(*thread, NULL);
+    return (thrd_join(*thread, NULL) == thrd_success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int boojum_sched_data_wiping(void *data, size_t *data_size, const size_t ttv) {
     int err = EINVAL;
     struct boojum_data_wiper_ctx *dw = NULL;
-    pthread_attr_t attr;
     int ntry = 10;
 
     dw = (struct boojum_data_wiper_ctx *)kryptos_newseg(sizeof(struct boojum_data_wiper_ctx));
@@ -82,21 +79,19 @@ int boojum_sched_data_wiping(void *data, size_t *data_size, const size_t ttv) {
         goto boojum_sched_data_wiping_epilogue;
     }
 
-    // INFO(Rafael): Just in case, but it does not seem to work.
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, 1);
-    err = pthread_create(&dw->thread, &attr, boojum_data_wiper, dw);
-    pthread_attr_destroy(&attr);
+    err = (thrd_create(&dw->thread,
+                       boojum_data_wiper, dw) == thrd_success) ? EXIT_SUCCESS :
+                                                                 EXIT_FAILURE;
 
     if (err != EXIT_SUCCESS) {
         goto boojum_sched_data_wiping_epilogue;
     }
 
-    while (!boojum_get_flag(&dw->enabled, &dw->lock) && ntry-- > 0) {
-        usleep(1);
+    while (!dw->enabled && ntry-- > 0) {
+        thrd_sleep(&(struct timespec){.tv_nsec = 1}, NULL);
     }
 
-    if (!boojum_get_flag(&dw->enabled, &dw->lock)) {
+    if (!dw->enabled) {
         err = EFAULT;
     }
 
@@ -118,7 +113,6 @@ int boojum_run_kupd_job(boojum_thread *thread,
     struct boojum_kupd_ctx *kupd = NULL;
     int err = EFAULT;
     int ntry = 10;
-    pthread_attr_t attr;
 
     if (alloc_tree == NULL       ||
         key_expiration_time == 0 ||
@@ -137,21 +131,19 @@ int boojum_run_kupd_job(boojum_thread *thread,
     kupd->keys_expiration_time = key_expiration_time;
     kupd->enabled = enabled_flag;
 
-    // INFO(Rafael): Just in case, but it does not seem to work.
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, 1);
-    err = pthread_create(kupd->thread, &attr, boojum_kupd_job, kupd);
-    pthread_attr_destroy(&attr);
+    err = (thrd_create(kupd->thread,
+                      &attr, boojum_kupd_job, kupd) == thrd_success) ? EXIT_SUCCESS
+                                                                     : EXIT_FAILURE;
 
     if (err != EXIT_SUCCESS) {
         goto boojum_run_kupd_job_epilogue;
     }
 
     while (ntry-- > 0 && boojum_get_flag(enabled_flag, giant_lock) == 0) {
-        usleep(10);
+        thrd_sleep(&(struct timespec){.tv_nsec = 10}, NULL);
     }
 
-    if (boojum_get_flag(enabled_flag, giant_lock) == 0) {
+    if (*enabled_flag == 0) {
         err = EFAULT;
     }
 
@@ -166,14 +158,12 @@ boojum_run_kupd_job_epilogue:
     return err;
 }
 
-static void *boojum_data_wiper(void *arg) {
+static int boojum_data_wiper(void *arg) {
     struct boojum_data_wiper_ctx *dw = (struct boojum_data_wiper_ctx *)arg;
 
     if (dw != NULL && dw->data != NULL && dw->data_size != NULL && *dw->data_size > 0) {
-        if (boojum_set_flag(&dw->enabled, 1, &dw->lock) != EXIT_SUCCESS) {
-            fprintf(stderr, "Boojum error: Unable to set data wiper thread enabled.\n");
-        }
-        usleep(dw->time_to_vanish * 1000);
+        dw->enabled = 1;
+        thrd_sleep(&(struct timespec){.tv_nsec = dw->time_to_vanish * 1000}, NULL);
         kryptos_freeseg(dw->data, *dw->data_size);
         *dw->data_size = 0;
         boojum_deinit_mutex(&dw->lock);
@@ -181,31 +171,23 @@ static void *boojum_data_wiper(void *arg) {
         dw = NULL;
     }
 
-    //pthread_exit(NULL);
-
-    return NULL;
+    return EXIT_SUCCESS;
 }
 
-static void *boojum_kupd_job(void *arg) {
+static int boojum_kupd_job(void *arg) {
     struct boojum_kupd_ctx *kupd = (struct boojum_kupd_ctx *)arg;
     if (kupd != NULL && kupd->giant_lock != NULL && kupd->enabled != NULL && kupd->alloc_tree != NULL) {
-        if (boojum_set_flag(kupd->enabled, 1, kupd->giant_lock) != EXIT_SUCCESS) {
-            fprintf(stderr, "Boojum error: Unable to set KUPD thread enabled.\n");
-            //pthread_exit(NULL);
-            return NULL;
-        }
-        while (boojum_get_flag(kupd->enabled, kupd->giant_lock)) {
+        *kupd->enabled = 1;
+        while (*kupd->enabled) {
             if (boojum_mutex_lock(kupd->giant_lock) == EXIT_SUCCESS) {
                 // TODO(Rafael): What if it has failed? What to effectively do?
                 boojum_update_xor_maskings(kupd->alloc_tree);
                 boojum_mutex_unlock(kupd->giant_lock);
             }
-            usleep(kupd->keys_expiration_time * 1000);
+            thrd_sleep(&(struct timespec *)&{.tv_nsec = kupd->keys_expiration_time * 1000}, NULL);
         }
         kryptos_freeseg(kupd, sizeof(struct boojum_kupd_ctx));
     }
 
-    //pthread_exit(NULL);
-
-    return NULL;
+    return EXIT_SUCCESS;
 }

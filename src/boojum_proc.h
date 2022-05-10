@@ -27,8 +27,11 @@ int boojum_run_kupd_job(boojum_thread *thread,
                         const size_t key_expiration_time,
                         int *enabled_flag);
 
-int boojum_get_flag(const int *flag, boojum_mutex *mtx);
+// INFO(Rafael): With C11 we have _Atomic() facilities.
+# if !defined(BOOJUM_WITH_C11)
+ int boojum_get_flag(const int *flag, boojum_mutex *mtx);
 
-int boojum_set_flag(int *flag, const int value, boojum_mutex *mtx);
+ int boojum_set_flag(int *flag, const int value, boojum_mutex *mtx);
+# endif
 
 #endif
