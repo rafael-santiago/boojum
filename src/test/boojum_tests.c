@@ -162,7 +162,7 @@ CUTE_TEST_CASE(boojum_set_timed_get_tests)
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_kupd_assurance_tests)
-#define MAS_EH_CLARO "S.B.B.H.K.K! S.B.B.H.K.K! Aqui é o Chapolin Colorado falando à Terra!"
+#define MAS_EH_CLARO "S.B.B.H.K.K! S.B.B.H.K.K! Aqui eh o Chapolin Colorado falando a Terra!"
     char *segment = NULL;
     char *data = NULL;
     size_t data_size;
@@ -222,7 +222,7 @@ static void print_segment_data(const void *segment, const size_t segment_size) {
 #if defined(_WIN32)
     fprintf(stdout, " 0x%p..%.2X = { ", segment, ((uintptr_t)segment & 0xFF) + segment_size);
 #else
-    fprintf(stdout, " %p..%.2x = { ", segment, ((uintptr_t)segment & 0xFF) + segment_size);
+    fprintf(stdout, " %p..%.2lx = { ", segment, ((uintptr_t)segment & 0xFF) + segment_size);
 #endif
     while (sp != sp_end) {
         fprintf(stdout, "%.2x%c ", *sp, token[(sp + 1) != sp_end]);
