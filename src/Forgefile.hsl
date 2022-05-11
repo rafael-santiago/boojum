@@ -20,27 +20,36 @@ boojum.prologue() {
     if (build("libkryptos") != 0) {
         hefesto.project.abort(1);
     }
+
     $srcs.ls(".*\\.c$");
+
     $deps = get_c_cpp_deps();
-    if (hefesto.sys.os_name() == "freebsd" ||
-        hefesto.sys.os_name() == "linux") {
-        hefesto.sys.cd("unix");
-        $srcs.ls(".*\\.c$");
-        $deps = $deps + get_c_cpp_deps();
-        hefesto.sys.cd("..");
-    } else if (hefesto.sys.os_name() == "windows") {
-        hefesto.sys.cd("windows");
-        $srcs.ls(".*\\.c$");
-        $deps = $deps + get_c_cpp_deps();
-        hefesto.sys.cd("..");
-    }
-    $incs = hefesto.sys.get_option("includes");
+
 
     var option type list;
     $option = hefesto.sys.get_option("boojum-with-c11");
-    if ($option.count() > 0) {
+
+    var use_c11_threading type int;
+    $use_c11_threading = ($option.count() > 0);
+
+    if ($use_c11_threading) {
         $cflags.add_item("-DBOOJUM_WITH_C11=1");
     }
+
+    if ($use_c11_threading) {
+        hefesto.sys.cd("c11");
+    } else if (hefesto.sys.os_name() == "freebsd" ||
+               hefesto.sys.os_name() == "linux") {
+        hefesto.sys.cd("unix");
+    } else if (hefesto.sys.os_name() == "windows") {
+        hefesto.sys.cd("windows");
+    }
+
+    $srcs.ls(".*\\.c$");
+    $deps = $deps + get_c_cpp_deps();
+    hefesto.sys.cd("..");
+
+    $incs = hefesto.sys.get_option("includes");
 
     $target = "libboojum.a";
 }

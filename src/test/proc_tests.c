@@ -109,8 +109,8 @@ CUTE_TEST_CASE_END
 #if defined(BOOJUM_WITH_C11)
 static int th_test_routine(void * arg) {
     int *retval = NULL;
-    thrd_sleep(&(struct timespec *){.tv_sec = 5}, NULL);
-    retal = (int *)arg;
+    thrd_sleep(&(struct timespec){.tv_sec = 5}, NULL);
+    retval = (int *)arg;
     *retval = 1;
     return EXIT_SUCCESS;
 }

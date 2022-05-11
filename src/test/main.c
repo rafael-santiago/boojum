@@ -9,7 +9,9 @@ CUTE_TEST_CASE(boojum_tests)
     CUTE_RUN_TEST(boojum_mutex_lock_unlock_tests);
     CUTE_RUN_TEST(boojum_init_deinit_thread_tests);
     CUTE_RUN_TEST(boojum_thread_join_tests);
+#if !defined(BOOJUM_WITH_C11)
     CUTE_RUN_TEST(boojum_get_set_flag_tests);
+#endif
     CUTE_RUN_TEST(boojum_init_tests);
     CUTE_RUN_TEST(boojum_deinit_tests);
     CUTE_RUN_TEST(boojum_alloc_free_tests);

@@ -96,6 +96,12 @@ local function build_test() : result type int {
         $cmdline = $cmdline + " --compile-model=debug";
     }
 
+    var boojum_with_c11 type list;
+    $boojum_with_c11 = hefesto.sys.get_option("boojum-with-c11");
+    if ($boojum_with_c11.count() > 0) {
+        $cmdline = $cmdline + " --boojum-with-c11";
+    }
+
     var err type int;
     $err = hefesto.sys.run($cmdline);
 

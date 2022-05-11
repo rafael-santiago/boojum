@@ -121,7 +121,7 @@ struct boojum_kupd_ctx {
     boojum_alloc_branch_ctx **alloc_tree;
     size_t keys_expiration_time;
 #if defined(BOOJUM_WITH_C11)
-    _Atomic(int *) enabled;
+    _Atomic(int) *enabled;
 #else
     int *enabled;
 #endif

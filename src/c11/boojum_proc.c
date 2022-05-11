@@ -14,7 +14,7 @@ int boojum_init_mutex(boojum_mutex *mtx) {
     if (mtx == NULL) {
         return EXIT_FAILURE;
     }
-    return (mtx_init(mtx, mtx_plain) == thrd_success) ? EXIT_SUCCES : EXIT_FAILURE;
+    return (mtx_init(mtx, mtx_plain) == thrd_success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int boojum_init_thread(boojum_thread *thread) {
@@ -109,7 +109,7 @@ int boojum_run_kupd_job(boojum_thread *thread,
                         boojum_mutex *giant_lock,
                         boojum_alloc_branch_ctx **alloc_tree,
                         const size_t key_expiration_time,
-                        int *enabled_flag) {
+                        _Atomic(int) *enabled_flag) {
     struct boojum_kupd_ctx *kupd = NULL;
     int err = EFAULT;
     int ntry = 10;
@@ -131,15 +131,14 @@ int boojum_run_kupd_job(boojum_thread *thread,
     kupd->keys_expiration_time = key_expiration_time;
     kupd->enabled = enabled_flag;
 
-    err = (thrd_create(kupd->thread,
-                      &attr, boojum_kupd_job, kupd) == thrd_success) ? EXIT_SUCCESS
-                                                                     : EXIT_FAILURE;
+    err = (thrd_create(kupd->thread, boojum_kupd_job, kupd) == thrd_success) ? EXIT_SUCCESS
+                                                                             : EXIT_FAILURE;
 
     if (err != EXIT_SUCCESS) {
         goto boojum_run_kupd_job_epilogue;
     }
 
-    while (ntry-- > 0 && boojum_get_flag(enabled_flag, giant_lock) == 0) {
+    while (ntry-- > 0 && *enabled_flag == 0) {
         thrd_sleep(&(struct timespec){.tv_nsec = 10}, NULL);
     }
 
@@ -176,15 +175,17 @@ static int boojum_data_wiper(void *arg) {
 
 static int boojum_kupd_job(void *arg) {
     struct boojum_kupd_ctx *kupd = (struct boojum_kupd_ctx *)arg;
+    struct timespec tm = { 0 };
     if (kupd != NULL && kupd->giant_lock != NULL && kupd->enabled != NULL && kupd->alloc_tree != NULL) {
         *kupd->enabled = 1;
+        tm.tv_nsec = kupd->keys_expiration_time * 1000;
         while (*kupd->enabled) {
             if (boojum_mutex_lock(kupd->giant_lock) == EXIT_SUCCESS) {
                 // TODO(Rafael): What if it has failed? What to effectively do?
                 boojum_update_xor_maskings(kupd->alloc_tree);
                 boojum_mutex_unlock(kupd->giant_lock);
             }
-            thrd_sleep(&(struct timespec *)&{.tv_nsec = kupd->keys_expiration_time * 1000}, NULL);
+            thrd_sleep(&tm, NULL);
         }
         kryptos_freeseg(kupd, sizeof(struct boojum_kupd_ctx));
     }
