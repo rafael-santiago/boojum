@@ -30,6 +30,14 @@ boojum-tests.prologue() {
         $cflags.add_item("-DBOOJUM_WITH_C11=1");
     }
 
+    $sources.ls(".*\\.c$");
+    if ($curr_toolset.match("^clang-") > 0 ||
+        $curr_toolset.match("^gcc-") > 0) {
+        $ldflags.add_item("-lcutest");
+        $ldflags.add_item("-lboojum");
+        $ldflags.add_item("-lkryptos");
+    }
+
     var os type string;
     $os = hefesto.sys.os_name();
 
@@ -39,14 +47,6 @@ boojum-tests.prologue() {
     } else if ($os == "linux") {
         $ldflags.add_item("-lpthread");
         $ldflags.add_item("-ldl");
-    }
-
-    $sources.ls(".*\\.c$");
-    if ($curr_toolset.match("^clang-") > 0 ||
-        $curr_toolset.match("^gcc-") > 0) {
-        $ldflags.add_item("-lcutest");
-        $ldflags.add_item("-lboojum");
-        $ldflags.add_item("-lkryptos");
     }
 
     $target = "boojum-tests";
