@@ -302,8 +302,8 @@ void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segm
 
     key = kryptos_hkdf(aleaf->r, aleaf->u_size,
                        sha3_512,
-                       aleaf->r + aleaf->u_size, aleaf->u_size,
-                       aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
+                       (unsigned char *)aleaf->r + aleaf->u_size, aleaf->u_size,
+                       (unsigned char *)aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
                        aleaf->u_size);
 
     if (key == NULL) {

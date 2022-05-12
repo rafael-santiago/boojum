@@ -2,6 +2,7 @@ include ~/toolsets/gcc/gcc-lib.hsl
 include ~/toolsets/gcc/gcc-app.hsl
 include ~/toolsets/clang/clang-lib.hsl
 include ~/toolsets/clang/clang-app.hsl
+include on windows ~/toolsets/msvc/msvc.hsl
 include ~/fsutil.hsl
 include ~/conv.hsl
 
@@ -39,9 +40,21 @@ function build(libname type string) : result type int {
 }
 
 local function build_libkryptos() : result type int {
-    if (isfile("libs/kryptos/lib/libkryptos.a") == 1) {
+    var curr_toolset type string;
+    $curr_toolset = get_current_toolset();
+
+    var libpath type string;
+
+    if ($curr_toolset != "msvc") {
+        $libpath = "libs/kryptos/lib/libkryptos.a";
+    } else {
+        $libpath = "libs/kryptos/lib/libkryptos" + get_msvc_lib_suffix() + ".lib";
+    }
+
+    if (isfile($libpath) == 1) {
         result 0;
     }
+
     var oldcwd type string;
     $oldcwd = hefesto.sys.pwd();
     if (hefesto.sys.cd("libs/kryptos/src") != 1) {
@@ -49,8 +62,17 @@ local function build_libkryptos() : result type int {
         result 1;
     }
 
+    var cmdline type string;
+    $cmdline = "hefesto --toolset=" + $curr_toolset;
+
+    var dbg type list;
+    $dbg = hefesto.sys.get_option("compile-model");
+    if ($dbg.count() > 0 && $dbg.item(0) == "debug") {
+        $cmdline = $cmdline + " --compile-model=debug";
+    }
+
     var err type int;
-    $err = hefesto.sys.run("hefesto");
+    $err = hefesto.sys.run($cmdline);
 
     hefesto.sys.cd($oldcwd);
 
@@ -58,7 +80,18 @@ local function build_libkryptos() : result type int {
 }
 
 local function build_libcutest() : result type int {
-    if (isfile("libs/cutest/src/lib/libcutest.a") == 1) {
+    var curr_toolset type string;
+    $curr_toolset = get_current_toolset();
+
+    var libpath type string;
+
+    if ($curr_toolset != "msvc") {
+        $libpath = "libs/cutest/src/lib/libcutest.a";
+    } else {
+        $libpath = "libs/cutest/src/lib/libcutest" + get_msvc_lib_suffix() + ".lib";
+    }
+
+    if (isfile($libpath) == 1) {
         result 0;
     }
 
@@ -70,8 +103,17 @@ local function build_libcutest() : result type int {
         result 1;
     }
 
+    var cmdline type string;
+    $cmdline = "hefesto --toolset=" + get_lib_toolset();
+
+    var dbg type list;
+    $dbg = hefesto.sys.get_option("compile-model");
+    if ($dbg.count() > 0 && $dbg.item(0) == "debug") {
+        $cmdline = $cmdline + " --compile-model=debug";
+    }
+
     var err type int;
-    $err = hefesto.sys.run("hefesto");
+    $err = hefesto.sys.run($cmdline);
 
     hefesto.sys.cd($oldcwd);
 
@@ -88,7 +130,7 @@ local function build_test() : result type int {
     }
 
     var cmdline type string;
-    $cmdline = "hefesto";
+    $cmdline = "hefesto --toolset=" + get_current_toolset();
 
     var dbg type list;
     $dbg = hefesto.sys.get_option("compile-model");
@@ -146,4 +188,31 @@ function get_memleak_total_by_valgrind(filepath type string) : result type int {
         hefesto.project.abort(1);
     }
     result $leak_total;
+}
+
+function get_msvc_lib_suffix() : result type string {
+    var config type string;
+    $config = msvc_get_cfg();
+    if ($config == "release") {
+        result "mt";
+    }
+    result "mtd";
+}
+
+local function msvc_get_cfg() : result type string {
+    var option type list;
+    $option = hefesto.sys.get_option("compile-model");
+    if ($option.count() == 0) {
+        result "release";
+    }
+
+    var config type string;
+    $config = $option.item(0);
+
+    if ($config.match("^([dD][eE][bB][uU][gG]|[rR][eE][lL][eE][aA][sS][eE])$") == 0) {
+        hefesto.sys.echo("ERROR: --compile-model must be 'debug' or 'release'.\n");
+        $config = "";
+    }
+
+    result $config;
 }

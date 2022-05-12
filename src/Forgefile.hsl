@@ -25,7 +25,6 @@ boojum.prologue() {
 
     $deps = get_c_cpp_deps();
 
-
     var option type list;
     $option = hefesto.sys.get_option("boojum-with-c11");
 
@@ -45,13 +44,22 @@ boojum.prologue() {
         hefesto.sys.cd("windows");
     }
 
+    if (hefesto.sys.os_name() == "windows" && $curr_toolset.match("^msvc-") > 0) {
+        $cflags.add_item("-DUMDF_USING_NTSTATUS=1");
+    }
+
+
     $srcs.ls(".*\\.c$");
     $deps = $deps + get_c_cpp_deps();
     hefesto.sys.cd("..");
 
     $incs = hefesto.sys.get_option("includes");
 
-    $target = "libboojum.a";
+    if ($curr_toolset.match("^msvc-") == 0) {
+        $target = "libboojum.a";
+    } else {
+        $target = "libboojum" + get_msvc_lib_suffix() + ".lib";
+    }
 }
 
 boojum.epilogue() {

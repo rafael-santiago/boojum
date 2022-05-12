@@ -36,6 +36,10 @@ boojum-tests.prologue() {
         $ldflags.add_item("-lcutest");
         $ldflags.add_item("-lboojum");
         $ldflags.add_item("-lkryptos");
+    } else if ($curr_toolset.match("^msvc-") > 0) {
+        $ldflags.add_item("libkryptos" + get_msvc_lib_suffix() + ".lib");
+        $ldflags.add_item("libcutest" + get_msvc_lib_suffix() + ".lib");
+        $ldflags.add_item("libboojum" + get_msvc_lib_suffix() + ".lib");
     }
 
     var os type string;
@@ -52,7 +56,11 @@ boojum-tests.prologue() {
     $target = "boojum-tests";
 
     if ($os == "windows") {
-        $ldflags.add_item("-lbcrypt");
+        if ($curr_toolset.match("^msvc-") == 0) {
+            $ldflags.add_item("-lbcrypt");
+        } else {
+            $ldflags.add_item("bcrypt.lib");
+        }
         $target = $target + ".exe";
     }
 }

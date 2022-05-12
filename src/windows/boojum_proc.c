@@ -176,7 +176,7 @@ static DWORD WINAPI boojum_data_wiper(LPVOID arg) {
         if (boojum_set_flag(&dw->enabled, 1, &dw->lock) != EXIT_SUCCESS) {
             fprintf(stderr, "Boojum error: Unable to set data wiper thread enabled.\n");
         }
-        Sleep(dw->time_to_vanish);
+        Sleep((DWORD)dw->time_to_vanish);
         kryptos_freeseg(dw->data, *dw->data_size);
         *dw->data_size = 0;
         boojum_deinit_mutex(&dw->lock);
@@ -200,7 +200,7 @@ static DWORD WINAPI boojum_kupd_job(LPVOID arg) {
                 boojum_update_xor_maskings(kupd->alloc_tree);
                 boojum_mutex_unlock(kupd->giant_lock);
             }
-            Sleep(kupd->keys_expiration_time);
+            Sleep((DWORD)kupd->keys_expiration_time);
         }
         kryptos_freeseg(kupd, sizeof(struct boojum_kupd_ctx));
     }

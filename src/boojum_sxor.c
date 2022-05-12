@@ -27,8 +27,8 @@ int boojum_sync_sxor(boojum_alloc_leaf_ctx *aleaf, unsigned char *data, const si
 
     key = kryptos_hkdf(aleaf->r, aleaf->u_size,
                        sha3_512,
-                       aleaf->r + aleaf->u_size, aleaf->u_size,
-                       aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
+                       (unsigned char *)aleaf->r + aleaf->u_size, aleaf->u_size,
+                       (unsigned char *)aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
                        aleaf->u_size);
 
     if (key == NULL) {
@@ -93,14 +93,14 @@ int boojum_sync_sxor_upd(boojum_alloc_leaf_ctx *aleaf) {
 
     key[0] = kryptos_hkdf(aleaf->r, aleaf->u_size,
                           sha3_512,
-                          aleaf->r + aleaf->u_size, aleaf->u_size,
-                          aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
+                          (unsigned char *)aleaf->r + aleaf->u_size, aleaf->u_size,
+                          (unsigned char *)aleaf->r + (aleaf->u_size << 1), aleaf->u_size,
                           aleaf->u_size);
 
     key[1] = kryptos_hkdf(r, aleaf->u_size,
                           sha3_512,
-                          aleaf->r + aleaf->u_size, aleaf->u_size,
-                          aleaf->r + (aleaf->u_size << 1),  aleaf->u_size,
+                          (unsigned char *)aleaf->r + aleaf->u_size, aleaf->u_size,
+                          (unsigned char *)aleaf->r + (aleaf->u_size << 1),  aleaf->u_size,
                           aleaf->u_size);
 
     if (key[0] == NULL || key[1] == NULL) {

@@ -138,7 +138,7 @@ static void *th_test_get_set_routine(void *args) {
 #elif defined(_WIN32)
 static DWORD WINAPI th_test_routine(PVOID arg) {
     int *retval = NULL;
-    sleep(5);
+    Sleep(5000);
     retval = (int *)arg;
     *retval = 1;
     return 0;
@@ -148,9 +148,9 @@ static DWORD WINAPI th_test_get_set_routine(PVOID args) {
     struct th_get_set_tests_ctx *th_args = (struct th_get_set_tests_ctx *)args;
     if (th_args->done == 0 &&
         boojum_set_flag(th_args->enabled, 1, th_args->mtx) == EXIT_SUCCESS) {
-        usleep(1);
+        Sleep(1);
         while (boojum_get_flag(th_args->enabled, th_args->mtx) == 1) {
-            usleep(1);
+            Sleep(1);
         }
         th_args->done = 1;
     }

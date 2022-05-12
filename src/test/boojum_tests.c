@@ -194,7 +194,13 @@ CUTE_TEST_CASE(boojum_kupd_assurance_tests)
         CUTE_ASSERT(memcmp(segment, MAS_EH_CLARO, data_size) != 0);
         memcpy(data, segment, data_size);
         CUTE_ASSERT(boojum_mutex_unlock(&gBoojumCtx->giant_lock) == EXIT_SUCCESS);
+#if defined(__unix__)
         sleep(2);
+#elif defined(_WIN32)
+        Sleep(2000);
+#else
+# error Some code wanted.
+#endif
         CUTE_ASSERT(boojum_mutex_lock(&gBoojumCtx->giant_lock) == EXIT_SUCCESS);
         CUTE_ASSERT(memcmp(segment, data, data_size) != 0);
         CUTE_ASSERT(boojum_mutex_unlock(&gBoojumCtx->giant_lock) == EXIT_SUCCESS);
