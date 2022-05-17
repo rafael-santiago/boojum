@@ -3,7 +3,7 @@
 ## What does Boojum is?
 
 Good question but here ``"Boojum"`` is my implementation of an ideia for data oblivion
-discussed by *Ferguson, Scheneier and Kohno* in their book *"Cryptography Engineering"*.
+discussed by *Ferguson, Schneier and Kohno* in their book *"Cryptography Engineering"*.
 
 There they called *"Boojum"* their proposal for sensitive data retention issues mitigation.
 By referring to *Lewis Carroll*'s character. In short, you know that maybe something is
