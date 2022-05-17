@@ -3,6 +3,10 @@
 
 #include <stdlib.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 int boojum_init(const size_t kupd_timeout_in_msecs);
 
 int boojum_deinit(void);
@@ -18,5 +22,9 @@ int boojum_set(void *ptr, void *data, size_t *data_size);
 void *boojum_get(const void *ptr, size_t *data_size);
 
 void *boojum_timed_get(const void *ptr, size_t *data_size, const size_t ttv);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif

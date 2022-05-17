@@ -1,21 +1,25 @@
 #ifndef BOOJUM_BOOJUM_TYPES_H
 #define BOOJUM_BOOJUM_TYPES_H 1
 
-#if defined(BOOJUM_WITH_C11)
-# include <threads.h>
- typedef mtx_t boojum_mutex;
- typedef thrd_t boojum_thread;
-#elif defined(__unix__)
-# include <pthread.h>
- typedef pthread_mutex_t boojum_mutex;
- typedef pthread_t boojum_thread;
-#elif defined(_WIN32)
-# include <windows.h>
- typedef HANDLE boojum_mutex;
- typedef HANDLE boojum_thread;
-#else
-# error Some code wanted.
+#if defined(__cplusplus)
+extern "C" {
 #endif
+
+# if defined(BOOJUM_WITH_C11)
+#  include <threads.h>
+  typedef mtx_t boojum_mutex;
+  typedef thrd_t boojum_thread;
+# elif defined(__unix__)
+#  include <pthread.h>
+  typedef pthread_mutex_t boojum_mutex;
+  typedef pthread_t boojum_thread;
+# elif defined(_WIN32)
+#  include <windows.h>
+  typedef HANDLE boojum_mutex;
+  typedef HANDLE boojum_thread;
+# else
+#  error Some code wanted.
+# endif
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -70,11 +74,11 @@ struct boojum_ctx {
     boojum_thread kupd;
     size_t kupd_in_msecs;
     boojum_alloc_branch_ctx *alloc_tree;
-#if defined(BOOJUM_WITH_C11)
+# if defined(BOOJUM_WITH_C11)
     _Atomic(int) kupd_enabled;
-#else
+# else
     int kupd_enabled;
-#endif
+# endif
 };
 
 struct boojum_data_wiper_ctx {
@@ -95,11 +99,11 @@ struct boojum_data_wiper_ctx {
     size_t time_to_vanish;
     void *data;
     size_t *data_size;
-#if defined(BOOJUM_WITH_C11)
+# if defined(BOOJUM_WITH_C11)
     _Atomic(int) enabled;
-#else
+# else
     int enabled;
-#endif
+# endif
 };
 
 struct boojum_kupd_ctx {
@@ -120,13 +124,17 @@ struct boojum_kupd_ctx {
     boojum_mutex *giant_lock;
     boojum_alloc_branch_ctx **alloc_tree;
     size_t keys_expiration_time;
-#if defined(BOOJUM_WITH_C11)
+# if defined(BOOJUM_WITH_C11)
     _Atomic(int) *enabled;
-#else
+# else
     int *enabled;
-#endif
+# endif
 };
 
 extern struct boojum_ctx *gBoojumCtx;
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif

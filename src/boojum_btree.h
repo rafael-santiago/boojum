@@ -3,6 +3,10 @@
 
 #include <boojum_types.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 // WARN(Rafael): All functions implemented in this module infers that alloc_tree is under
 //               a well-synchronized status.
 
@@ -15,5 +19,9 @@ int boojum_set_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segmen
 void *boojum_get_data(boojum_alloc_branch_ctx **alloc_tree, const uintptr_t segment_addr, size_t *size);
 
 int boojum_update_xor_maskings(boojum_alloc_branch_ctx **alloc_tree);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif
