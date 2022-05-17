@@ -11,9 +11,12 @@
 In general it has. The only difference is that here it is being used ``HKDF``
 to derive the masking key instead of using directly a general ``Hash`` function.
 
-By doing it we are able to protect keys greater than the ``Hash`` function output.
-It becomes a more general solution. Anyway, it is not a good idea to store pretty
-long sensitive data because it can consume a bunch of memory.
+By doing it we are able to protect keys greater than the ``Hash`` function output
+more easily by using a standard/well-known way. It becomes a more general solution.
+Anyway, it is not a good idea to store pretty long sensitive data because it can
+consume a bunch of memory.
+
+For ``HKDF``'s hash function ``SHA-3/512`` has been taken.
 
 [Back](#topics)
 
@@ -114,7 +117,7 @@ a void pointer and it takes two arguments:
 - The second is a ``size_t`` pointer that on a successful return
   indicates the size in bytes of the returned void pointer.
 
-**Remark**: The retuned **buffer is loaded with plain data** and it should
+**Remark**: The returned **buffer is loaded with plain data** and it should
 be freed **as soon as possible**. It is up to you ensure this data wiping.
 
 Take a look at its prototype:
