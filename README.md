@@ -6,7 +6,7 @@ Good question but here ``"Boojum"`` is my implementation of an ideia for data ob
 discussed by *Ferguson, Scheneier and Kohno* in their book *"Cryptography Engineering"*.
 
 There they called *"Boojum"* their proposal for sensitive data retention issues mitigation.
-By referring to *Lewis Carroll*'s character. In short, you known that maybe something is
+By referring to *Lewis Carroll*'s character. In short, you know that maybe something is
 there but you cannot see it (sorry for the spoiler kids!)
 
 In the book, the base of the presented discussion is given by the paper from *2002*
@@ -40,8 +40,8 @@ BichoPapaum@Roof:~/boojum/src# _
 
 Congrats! Now you should read:
 
-    - [doc/BUILD.md](https://github.com/rafael-santiago/boojum/blob/main/doc/BUILD.md)
-    - [doc/MANUAL.md](https://github.com/rafael-santiago/boojum/blob/main/doc/MANUAL.md)
+- [doc/BUILD.md](https://github.com/rafael-santiago/boojum/blob/main/doc/BUILD.md)
+- [doc/MANUAL.md](https://github.com/rafael-santiago/boojum/blob/main/doc/MANUAL.md)
 
 *Enjoy!
 Rafael, May 2022.*
