@@ -67,6 +67,13 @@ boojum.epilogue() {
         if (build("test") != 0) {
             hefesto.project.abort(1);
         }
+        var mk_sample type list;
+        $mk_sample = hefesto.sys.get_option("mk-sample");
+        if ($mk_sample.count() > 0) {
+            if (build("sample") != 0) {
+                hefesto.project.abort(1);
+            }
+        }
     } else {
         hefesto.sys.echo("~~~ Build failure.\n");
     }

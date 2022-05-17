@@ -5,3 +5,6 @@ lib/*
 .Forgefile-*
 */test/o/*
 */test/bin/*
+bin/*
+*/sample/*/*
+*/test/memcheck-log.txt

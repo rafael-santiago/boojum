@@ -39,6 +39,31 @@ function build(libname type string) : result type int {
     result 1;
 }
 
+local function build_sample() : result type int {
+    var oldcwd type string;
+    $oldcwd = hefesto.sys.pwd();
+    if (hefesto.sys.cd("sample") != 1) {
+        hefesto.sys.echo("ERROR: Unable to find sample directory.\n");
+        result 1;
+    }
+
+    var cmdline type string;
+    $cmdline = "hefesto --toolset=" + get_current_toolset();
+
+    var boojum_with_c11 type list;
+    $boojum_with_c11 = hefesto.sys.get_option("boojum-with-c11");
+    if ($boojum_with_c11.count() > 0) {
+        $cmdline = $cmdline + " --boojum-with-c11";
+    }
+
+    var err type int;
+    $err = hefesto.sys.run($cmdline);
+
+    hefesto.sys.cd($oldcwd);
+
+    result $err;
+}
+
 local function build_libkryptos() : result type int {
     var curr_toolset type string;
     $curr_toolset = get_current_toolset();
