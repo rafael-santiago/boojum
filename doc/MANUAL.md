@@ -47,8 +47,8 @@ Check on **Table 1** to get a summary.
 |  ``Clang``             |   ``Unix-like`` | ``-lboojum``, ``-lkryptos``, ``-lpthread``                  |
 |   ``MinGW``            |   ``Windows``   | ``-lboojum``, ``-lkryptos``, ``-lbcrypt``                   |
 |  ``Clang``             |   ``Windows``   | ``-lboojum``, ``-lkryptos``, ``-lbcrypt``                   |
-|  ``MSVC`` **(Release)**|   ``Windows``   | ``libboojummt.lib``, ``libkryptosmt.lib``, ``bcrypt.lib``   |
-|  ``MSVC`` **(Debug)**  |   ``Windows``   | ``libboojummtd.lib``, ``libkryptosmtd.lib``, ``bcrypt.lib`` |
+|  ``MSVC``  *(Release)* |   ``Windows``   | ``libboojummt.lib``, ``libkryptosmt.lib``, ``bcrypt.lib``   |
+|  ``MSVC``  *(Debug)*   |   ``Windows``   | ``libboojummtd.lib``, ``libkryptosmtd.lib``, ``bcrypt.lib`` |
 
 ``Boojum`` supports ``C11`` threading conveniences. If your compiler and ``libc``
 ships all those ``C11`` stuff correctly you can build the library by using those

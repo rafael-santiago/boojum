@@ -1,7 +1,7 @@
 # Boojum's BUILD
 
 ``Boojum`` can be built by using [``Hefesto``](https://github.com/rafael-santiago/hefesto)
->> "- Welcome to The Twilight Zone!" :)
+> "- Welcome to The Twilight Zone!" :)
 
 But it simply works without calling you a bunch of dru... I meant dependencies!
 
