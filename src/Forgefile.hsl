@@ -17,6 +17,8 @@ boojum.preloading() {
 project boojum : toolset $curr_toolset : dependencies $deps : $srcs, $incs, $cflags, $libraries, $ldflags, $target;
 
 boojum.prologue() {
+    installer();
+
     if (build("libkryptos") != 0) {
         hefesto.project.abort(1);
     }
