@@ -3,7 +3,7 @@
 ## Topics
 
 - [Has ``libboojum`` really been implementing the original ``Boojum`` idea?](#has-libboojum-really-been-implementing-the-original-boojum-idea)
-- [How to integrate boojum into your stuff](how-to-integrate-boojum-into-your-stuff)
+- [How to integrate boojum into your stuff](#how-to-integrate-boojum-into-your-stuff)
 - [Protecting your sensitive data with Boojum](#protecting-your-sensitive-data-with-boojum)
 
 ## Has ``libboojum`` really been implementing the original ``Boojum`` idea?
