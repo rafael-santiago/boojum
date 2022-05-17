@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+#define BOOJUM_VERSION 0x20220000 // INFO(Rafael): 16-bits for the year | 16-bits for the release number
+
 int boojum_init(const size_t kupd_timeout_in_msecs);
 
 int boojum_deinit(void);
