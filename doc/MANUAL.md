@@ -5,6 +5,7 @@
 - [Has ``libboojum`` really been implementing the original ``Boojum`` idea?](#has-libboojum-really-been-implementing-the-original-boojum-idea)
 - [How to integrate boojum into your stuff](#how-to-integrate-boojum-into-your-stuff)
 - [Protecting your sensitive data with Boojum](#protecting-your-sensitive-data-with-boojum)
+- [How slow by accessing masked memory by ``Boojum`` could be?](#how-slow-by-accessing-masked-memory-by-boojum-could-be)
 
 ## Has ``libboojum`` really been implementing the original ``Boojum`` idea?
 
@@ -263,5 +264,27 @@ epilogue:
 ```
 
 You can find the sample presented above into  ``src/sample``.
+
+[Back](#topics)
+
+## How slow by accessing masked memory by ``Boojum`` could be?
+
+The access to masked memory is constant time, being its Big-O about *O(``w``)* [sic... :P].
+Here ``w`` denotes the cpu word size. Thus, if you are on a ``32-bit`` cpu it will be
+about *O(32)*, on a ``64-bit`` cpu it will be *O(64)*. Why?
+
+It is because ``Boojum`` "unwraps" the bits from the value representing
+the memory segment in a binary tree layout. This care ensures an constant
+time access to all protected segments. This tree is internally called
+``allocation tree``.
+
+You can also draw a conclusion that the maximum allocation tree height is equals to
+the cpu word size. Enough! This is the last nerdy ``compsci`` remark that you will
+see here....
+
+Depending on your resources (memory and cpu) it can consume a bunch of memory.
+Due to it you should only protect small pieces of information and also for
+short periods of time. The cpu consume is about the ``Boojum``'s thread responsible
+for updating masking keys of the protected segments from time to time.
 
 [Back](#topics)
