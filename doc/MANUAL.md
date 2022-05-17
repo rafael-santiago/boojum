@@ -282,8 +282,8 @@ You can also draw a conclusion that the maximum allocation tree height is equals
 the cpu word size. Enough! This is the last nerdy ``compsci`` remark that you will
 see here....
 
-Depending on your resources (memory and cpu) it can consume a bunch of memory.
-Due to it you should only protect small pieces of information and also for
+Depending on your resources (memory and cpu) it can consume a bunch of memory and
+cpu, too. Due to it you should only protect small pieces of information and also for
 short periods of time. The cpu consume is about the ``Boojum``'s thread responsible
 for updating masking keys of the protected segments from time to time.
 
