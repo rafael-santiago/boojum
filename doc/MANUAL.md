@@ -1,8 +1,10 @@
 # Boojum user's guide
 
 **Abstract**: This document aims to provide the main guidance of how to integrate ``Boojum`` memory masking protection
-into your previous stuff. Any unclear or even untreated topic you can report [here](https://github.com/rafael-santiago/boojum/issues),
-please and thank you!
+into your previous stuff. Any unclear or even untreated topic you can report [here](https://github.com/rafael-santiago/boojum/issues)
+please and, thank you!
+
+![Ilustration by Henry Holiday (1839-1927) / Public Domain](https://github.com/rafael-santiago/boojum/blob/main/etc/boojum_by_henry_holiday.png "Ilustration by Henry Holiday (1839-1927) / Public Domain")
 
 ## Topics
 
