@@ -1,5 +1,11 @@
-// INFO(Rafael): With C11 we have _Atomic() facilities.
-#if !defined(BOOJUM_WITH_C11)
+/*
+ * Copyright (c) 2022, Rafael Santiago
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+#if !defined(BOOJUM_WITH_C11) // INFO(Rafael): With C11 we have _Atomic() facilities.
 # include <boojum_proc.h>
 
 int boojum_get_flag(const int *flag, boojum_mutex *mtx) {
