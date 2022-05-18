@@ -1,5 +1,9 @@
 # Boojum user's guide
 
+**Abstract**: This document aims to provide the main guidance of how to integrate ``Boojum`` memory masking protection
+into your previous stuff. Any unclear or even untreated topic you can report [here](https://github.com/rafael-santiago/boojum/issues),
+please and thank you!
+
 ## Topics
 
 - [Has ``libboojum`` really been implementing the original ``Boojum`` idea?](#has-libboojum-really-been-implementing-the-original-boojum-idea)
