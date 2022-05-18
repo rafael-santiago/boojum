@@ -27,7 +27,7 @@ For ``HKDF``'s hash function ``SHA-3/512`` has been taken.
 
 I also have been using my own cross-platform/"cross-space" ``crypto`` library called [kryptos](https://github.com/rafael-santiago/kryptos).
 *Welcome to my Twilight Zone Folks!* :exploding_head: :wink: ... Yes, ``Boojum`` uses ``Kryptos`` that were built by ``Hefesto``
-that uses some conveniences given by ``Helios`` and, all of it is being tested by using ``Cutest``.
+that uses some conveniences given by ``Helios`` and, all of it is being tested by using ``Cutest`` (and if you have [``Valgrind``](https://valgrind.org) installed on your system ``Hefesto`` will also use ``Valgrind`` when running ``Boojum``'s tests).
 :milky_way: :face_with_spiral_eyes: :grinning:
 
 [Back](#topics)
