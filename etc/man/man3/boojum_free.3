@@ -1,0 +1,57 @@
+.TH BOOJUM_FREE 3 "May 18, 2022" "version 0x20220000" "BOOJUM's API"
+.SH NAME
+boojum_free \- frees a previous allocated masked memory segment
+
+.SH SYNOPSIS
+.nf
+.B #include <boojum.h>
+
+.BI
+.BI "int boojum_free(void *"ptr );
+.fi
+
+.SH DESCRIPTION
+The
+.BR boojum_free ()
+function frees a previous masked memory segment allocated
+by using
+.BR boojum_alloc ()
+or
+.BR boojum_realloc ()
+functions.
+
+It takes as single parameter the starting address of the
+previous allocated masked memory segment.
+
+.SH RETURN VALUE
+On success,
+.BR boojum_free ()
+returns \fIEXIT_SUCCESS\fR,
+on failure it returns \fIEXIT_FAILURE\fR or the exact
+value defined in \fI<errno.h>\fR.
+
+.SH REMARKS
+By replacing
+.BR boojum_free ()
+calls by an ordinary
+.BR free ()
+call will cause memory leaks. Any masked memory segment
+must always be freed by using
+.BR boojum_free ()
+function.
+
+When freeing memory
+.BR boojum_free ()
+also wipes loaded data out before deallocating the segment.
+
+.PP
+.SH
+SEE ALSO
+.BR boojum_alloc (3),
+.BR boojum_realloc (3)
+
+.SH COLOPHON
+This page is part of \fIlibboojum\fR. You can find more information at
+\%https://github.com/rafael-santiago/boojum. There you can also find
+newest releases, areas for reporting issues besides more technical
+discussions.

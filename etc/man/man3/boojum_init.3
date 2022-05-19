@@ -1,0 +1,48 @@
+.TH BOOJUM_INIT 3 "May 18, 2022" "version 0x20220000" "BOOJUM's API"
+.SH NAME
+boojum_init \- initializes \fIBoojum\fR memory protection system
+
+.SH SYNOPSIS
+.nf
+.B #include <boojum.h>
+
+.BI
+.BI "int boojum_init(const size_t "kupd_timeout_in_msec );
+.fi
+
+.SH DESCRIPTION
+The
+.BR boojum_init ()
+function initializes the memory protection system. By allocating
+and setting up all relevant library's internal data contexts.
+
+It takes as single parameter a value which express in milliseconds
+the time interval that the masking keys will be updated.
+
+.SH RETURN VALUE
+On success,
+.BR boojum_init ()
+returns \fIEXIT_SUCCESS\fR, on failure it returns \fIEXIT_FAILURE\fR
+or the exact error value defined in \fI<errno.h>\fR.
+
+.SH REMARKS
+As best practice, after a well-succeded initialization \fIBoojum\fR's system
+must be deinitialized by calling
+.BR boojum_deinit ()
+function before program exiting.
+
+Successive calls of
+.BR boojum_init ()
+implicitly deinitializes the previous initialization done by the last
+well-succeeded call.
+
+.PP
+.SH
+SEE ALSO
+.BR boojum_deinit (3)
+
+.SH COLOPHON
+This page is part of \fIlibboojum\fR. You can find more information at
+\%https://github.com/rafael-santiago/boojum. There you can also find
+newest releases, areas for reporting issues besides more technical
+discussions.

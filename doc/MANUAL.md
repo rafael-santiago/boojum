@@ -302,7 +302,7 @@ see here....
 
 Depending on your resources (memory and cpu) it can consume a bunch of memory (and
 cpu, too). Due to it you should only protect small pieces of information and also for
-short periods of time. The cpu consume is about the ``Boojum``'s thread responsible
+short periods of time. The cpu consumption is about the ``Boojum``'s thread responsible
 for updating masking keys of the protected segments from time to time. More you
 protect, more cpu time you spend by updating the protection layers over the
 protected data.

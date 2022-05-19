@@ -1,0 +1,49 @@
+.TH BOOJUM_ALLOC 3 "May 18, 2022" "version 0x20220000" "BOOJUM's API"
+.SH NAME
+boojum_alloc \- allocates a masked memory segment
+
+.SH SYNOPSIS
+.nf
+.B #include <boojum.h>
+
+.BI
+.BI "void *boojum_alloc(const size_t "ssize );
+.fi
+
+.SH DESCRIPTION
+The
+.BR boojum_alloc ()
+function allocates a masked memory segment.
+
+It takes as single parameter a value which expresses the wanted
+size in bytes of this new memory segment.
+
+.SH RETURN VALUE
+On success,
+.BR boojum_alloc ()
+returns the start address where this segment resides,
+on failure it returns \fINULL\fR.
+
+.SH REMARKS
+Once allocated the memory segment must be freed by calling
+.BR boojum_free ()
+function.
+.PP
+The allocated memory must not be directly accessed by the program.
+Doing this kind of unmanaged access is race condition prone and it
+would cause undefined behaviors. You must use the related reading
+and writing functions instead.
+
+.PP
+.SH
+SEE ALSO
+.BR boojum_free (3),
+.BR boojum_set (3),
+.BR boojum_get (3),
+.BR boojum_timed_get(3)
+
+.SH COLOPHON
+This page is part of \fIlibboojum\fR. You can find more information at
+\%https://github.com/rafael-santiago/boojum. There you can also find
+newest releases, areas for reporting issues besides more technical
+discussions.
