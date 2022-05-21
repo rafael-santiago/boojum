@@ -1,0 +1,51 @@
+.TH BOOJUM_TIMED_GET 3 "May 18, 2022" "version 0x20220000" "BOOJUM's API"
+.SH NAME
+boojum_timed_get \- timed version of
+.BR boojum_get ()
+
+.SH SYNOPSIS
+.nf
+.B #include <boojum.h>
+
+.BI
+.BI "void *boojum_timed_get(void "*ptr ", size_t "*data_size ", const size_t "ttv );
+.fi
+
+.SH DESCRIPTION
+The
+.BR boojum_timed_get ()
+function retrieves a previous stored data from a masked memory segment and
+also it sets up a timer to erase the returned data.
+
+It takes three arguments:
+
+.IP - 0.2i
+The starting address of the masked memory segment.
+.IP -
+A pointer used to indicate the size in bytes of the returned data.
+.IP -
+A interval in milliseconds that expresses how long the returned
+data will be accessible before being wiped and freed. You
+can understand \fIttv\fR as "time to vanish".
+
+.SH RETURN VALUE
+On success,
+.BR boojum_timed_get ()
+returns an allocated buffer loaded with the plain data well
+as the size in bytes of the returned data in \fIdata_size\fR,
+on failure it returns \fINULL\fR.
+
+.SH REMARKS
+After the time interval expressed by \fIttv\fR, the buffer
+must not be accessed because it probably will have been freed.
+
+.PP
+.SH
+SEE ALSO
+.BR boojum_get (3)
+
+.SH COLOPHON
+This page is part of \fIlibboojum\fR. You can find more information at
+\%https://github.com/rafael-santiago/boojum. There you can also find
+newest releases, areas for reporting issues besides more technical
+discussions.

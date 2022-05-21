@@ -1,0 +1,45 @@
+.TH BOOJUM_GET 3 "May 18, 2022" "version 0x20220000" "BOOJUM's API"
+.SH NAME
+boojum_get \- retrieves plain data from a masked memory segment
+
+.SH SYNOPSIS
+.nf
+.B #include <boojum.h>
+
+.BI
+.BI "void *boojum_get(void "*ptr ", size_t "*data_size );
+.fi
+
+.SH DESCRIPTION
+The
+.BR boojum_get ()
+function retrieves a previous stored data from a masked memory segment.
+
+It takes two arguments:
+
+.IP - 0.2i
+The starting address of the masked memory segment.
+.IP -
+A pointer used to indicate the size in bytes of the returned data.
+
+.SH RETURN VALUE
+On success,
+.BR boojum_get ()
+returns an allocated buffer loaded with the plain data well
+as the size in bytes of the returned data in \fIdata_size\fR,
+on failure it returns \fINULL\fR.
+
+.SH REMARKS
+The data wiping of the returned plain buffer and its size is up
+to the user.
+
+.PP
+.SH
+SEE ALSO
+.BR boojum_timed_get (3)
+
+.SH COLOPHON
+This page is part of \fIlibboojum\fR. You can find more information at
+\%https://github.com/rafael-santiago/boojum. There you can also find
+newest releases, areas for reporting issues besides more technical
+discussions.

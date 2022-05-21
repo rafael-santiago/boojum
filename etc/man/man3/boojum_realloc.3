@@ -1,0 +1,50 @@
+.TH BOOJUM_REALLOC 3 "May 18, 2022" "version 0x20220000" "BOOJUM's API"
+.SH NAME
+boojum_realloc \- reallocates a masked memory segment
+
+.SH SYNOPSIS
+.nf
+.B #include <boojum.h>
+
+.BI
+.BI "void *boojum_realloc(void "*ptr ", const size_t "ssize );
+.fi
+
+.SH DESCRIPTION
+The
+.BR boojum_realloc ()
+function reallocates a masked memory segment.
+
+It takes two parameters:
+.IP - 0.2i
+The starting address of the previous allocated masked memory segment.
+.IP -
+The new wanted size.
+
+.SH RETURN VALUE
+On success,
+.BR boojum_realloc ()
+returns the start address where the new segment resides,
+on failure it returns \fINULL\fR.
+
+.SH REMARKS
+Unlike \fIlibc\fR's
+.BR realloc ()
+function,
+.BR boojum_realloc ()
+always returns a new memory segment loaded with the previous
+stored data.
+
+The memory segement reallocated must be freed by using
+.BR boojum_free ()
+function.
+
+.SH
+SEE ALSO
+.BR boojum_free (3)
+
+.SH COLOPHON
+This page is part of \fIlibboojum\fR. You can find more information at
+\%https://github.com/rafael-santiago/boojum. There you can also find
+newest releases, areas for reporting issues besides more technical
+discussions.

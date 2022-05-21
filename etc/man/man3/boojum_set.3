@@ -1,0 +1,55 @@
+.TH BOOJUM_SET 3 "May 18, 2022" "version 0x20220000" "BOOJUM's API"
+.SH NAME
+boojum_set \- loads memory into a masked memory segment
+
+.SH SYNOPSIS
+.nf
+.B #include <boojum.h>
+
+.BI
+.BI "int boojum_set(void "*ptr ", void "*data ", size_t "*data_size );
+.fi
+
+.SH DESCRIPTION
+The
+.BR boojum_set ()
+function loads into a previous masked memory segment a passed content.
+
+It takes three arguments:
+
+.IP - 0.2i
+The starting address of the masked memory segment.
+.IP -
+The pointer to the data that will be loaded.
+.IP -
+A pointer to the size in bytes of the loaded data.
+
+.SH RETURN VALUE
+On success,
+.BR boojum_set ()
+returns \fIEXIT_SUCCESS\fR,
+on failure it returns \fIEXIT_FAILURE\fR or the exact
+value defined in \fI<errno.h>\fR.
+
+.SH REMARKS
+After storing the passed data, the content loaded into \fIdata\fR
+buffer is zeroed well as the value pointed by \fIdata_size\fR.
+
+The stored data cannot and should not be accessed direct from
+the masked memory segment. It is necessary to use
+.BR boojum_get ()
+or
+.BR boojum_timed_get()
+for doing it.
+
+.PP
+.SH
+SEE ALSO
+.BR boojum_get (3),
+.BR boojum_timed_get (3)
+
+.SH COLOPHON
+This page is part of \fIlibboojum\fR. You can find more information at
+\%https://github.com/rafael-santiago/boojum. There you can also find
+newest releases, areas for reporting issues besides more technical
+discussions.
