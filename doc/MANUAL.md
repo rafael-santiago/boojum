@@ -26,8 +26,8 @@ consume a bunch of memory.
 For ``HKDF``'s hash function ``SHA-3/512`` has been taken.
 
 I also have been using my own cross-platform/"cross-space" ``crypto`` library called [kryptos](https://github.com/rafael-santiago/kryptos).
-*Welcome to my Twilight Zone Folks!* :exploding_head: :wink: ... Yes, ``Boojum`` uses ``Kryptos`` that were built by ``Hefesto``
-that uses some conveniences given by ``Helios`` and, all of it is being tested by using ``Cutest`` (and if you have [``Valgrind``](https://valgrind.org) installed on your system ``Hefesto`` will also use ``Valgrind`` when running ``Boojum``'s tests).
+*Welcome to my Twilight Zone Folks!* :exploding_head: :wink: ... Yes, ``Boojum`` uses ``Kryptos`` and they are built by ``Hefesto``
+that uses some conveniences given by ``Helios`` and, all of them are being tested by using ``Cutest`` (and if you have [``Valgrind``](https://valgrind.org) installed on your system, ``Hefesto`` will also use ``Valgrind`` when running ``Boojum``'s tests).
 :milky_way: :face_with_spiral_eyes: :grinning:
 
 [Back](#topics)
@@ -39,17 +39,17 @@ strainghtforward. Let's see...
 
 It must be linked against your application by using ``-lboojum`` or ``libboojum.a``
 if you are using ``GCC`` or ``Clang``. On ``VisualStudio`` you must indicate
-``libboojummt.lib`` or ``libboojummtd.lib`` depending on your chose build
+``libboojummt.lib`` or ``libboojummtd.lib`` depending on your chosen build
 configuration.
 
 As a matter of best practice you should pass the ``Boojum``'s headers directory
 to your compiler.
 
-On ``Unix`` ``libboojum`` depends on ``pthreads`` and on ``Windows`` depends on
+On ``Unix``, ``libboojum`` depends on ``pthreads`` and on ``Windows``, it depends on
 ``bcrypt.lib``.
 
-``Boojum`` also depends on another library of mine: [``kryptos``](https://github.com/rafael-santiago/kryptos).
-On ``GCC`` or ``Clang`` you need to link with ``-lkryptos`` on ``MSVC`` with
+As said ealier, ``Boojum`` also depends on another library of mine: [``kryptos``](https://github.com/rafael-santiago/kryptos).
+Thus, on ``GCC`` or ``Clang`` you need to link with ``-lkryptos`` on ``MSVC`` with
 ``libkryptosmt.lib`` or ``libkryptosmtd.lib``.
 
 Check on **Table 1** to get a summary.
@@ -57,7 +57,7 @@ Check on **Table 1** to get a summary.
 **Table 1**: Required compiler flags to link your ``Boojum`` client application.
 
 |    **Compiler**        |  **Platform**   |              **Linker flags**                               |
-|:----------------------:|:---------------:|------------------------------------------------------------:|
+|:----------------------:|:---------------:|:-----------------------------------------------------------:|
 |   ``GCC``              |   ``Unix-like`` | ``-lboojum``, ``-lkryptos``, ``-lpthread``                  |
 |  ``Clang``             |   ``Unix-like`` | ``-lboojum``, ``-lkryptos``, ``-lpthread``                  |
 |   ``MinGW``            |   ``Windows``   | ``-lboojum``, ``-lkryptos``, ``-lbcrypt``                   |
@@ -66,9 +66,9 @@ Check on **Table 1** to get a summary.
 |  ``MSVC``  *(Debug)*   |   ``Windows``   | ``libboojummtd.lib``, ``libkryptosmtd.lib``, ``bcrypt.lib`` |
 
 ``Boojum`` supports ``C11`` threading conveniences. If your compiler and ``libc``
-ships all those ``C11`` stuff correctly you can build the library by using those
-conveniences. Once built when compiling your code, you must define ``BOOJUM_WITH_C11``
-macro. Besides, of course, enable ``C11`` capabilities of your compiler.
+ships all those ``C11`` stuff correctly you can build the library with those ``C11`` features.
+Once built, when compiling your code, you must define ``BOOJUM_WITH_C11``
+macro. Besides, of course, enable ``C11`` capabilities on your compiler.
 
 [Back](#topics)
 
@@ -101,7 +101,7 @@ freed by ``boojum_free()``:
 ```
 
 Once allocated, the memory segment **must not** be set directly, you should use
-the function ``boojum_set()``. This function takes three paremeters:
+the function ``boojum_set()``. This function takes three parameters:
 
 - The first one is about the protect memory segment address that will
   receive the sensitive data.
@@ -119,7 +119,7 @@ Take a look at its prototype:
 ```
 
 Now that you know how to allocate, set and free protected segments "maybe"
-you need to know how to retrieve the plain data to do your stuff. It
+you need to know how to retrieve the plain data from a protected area. It
 is done by calling the function ``boojum_get()``. This function returns
 a void pointer and it takes two arguments:
 
@@ -139,11 +139,11 @@ Take a look at its prototype:
 ```
 
 If you are good at forgetting doing stuff, maybe ``boojum_timed_get()``
-is the best way of retrieving plain stuff from ``Boojum``. It takes the
+is the best way of retrieving plain stuff from ``Boojum`` for you. It takes the
 same parameters of ``boojum_get()`` and one more. This additional parameter
-is the ``ttv`` (``time to vanish``, in milliseconds). After ``ttv`` secs
+is the ``ttv`` (``time to vanish``, in milliseconds). After ``ttv`` msecs
 the returned buffer and the variable indicating its size will be zeroed.
-The buffer will also be freed. You can understand it as a kind of paranoid
+The buffer will be freed, too. You can understand it as a kind of paranoid
 ``gc``. Notice that after ``ttv`` milliseconds if you access the returned
 pointer you will cause invalid pointer access exceptions on your program.
 
@@ -153,8 +153,8 @@ Take a look at its prototype:
     void *boojum_timed_get(const void *ptr, size_t *data_size, const size_t ttv);
 ```
 
-The ``Boojum`` library only can work after a successful ``boojum_init()`` call.
-This call only takes one parameter that indicates the time interval in milliseconds
+The ``Boojum`` library can only work after a successful ``boojum_init()`` call.
+This call just takes one parameter that indicates the time interval in milliseconds
 that the masking keys will be updated. The time interval should not be so
 large since the update is applied in order to mitigate cold boot attacks.
 
@@ -173,10 +173,10 @@ This is the prototype:
     int boojum_deinit(void);
 ```
 
-**Rule of thumb**: All functions that returns ``int`` on success returns ``EXIT_SUCCESS``.
-On failure it will return ``EXIT_FAILURE`` or the exact error from ``errno.h``.
+**Rule of thumb**: All functions that returns ``int`` on success, returns ``EXIT_SUCCESS``.
+On failure, it will return ``EXIT_FAILURE`` or the exact error from ``errno.h``.
 
-Now, follows everything we have talking about as code:
+Now, follows everything discussed as code:
 
 ```c
 /*
@@ -281,7 +281,7 @@ epilogue:
 }
 ```
 
-You can find the sample presented above into  ``src/sample``.
+You can find the sample presented above into ``src/sample``.
 
 [Back](#topics)
 
@@ -292,13 +292,13 @@ Here ``w`` denotes the cpu word size. Thus, if you are on a ``32-bit`` cpu it wi
 about *O(32)*, on a ``64-bit`` cpu it will be *O(64)*. Why?
 
 It is because ``Boojum`` "unwraps" the bits from the value representing
-the memory segment in a binary tree layout. This care ensures an constant
+the memory segment in a binary tree layout. This care ensures a constant
 time access to all protected segments. This tree is internally called
 ``allocation tree``.
 
 You can also draw a conclusion that the maximum allocation tree height is equals to
 the cpu word size. Enough! This is the last nerdy ``compsci`` remark that you will
-see here....
+read here....
 
 Depending on your resources (memory and cpu) it can consume a bunch of memory (and
 cpu, too). Due to it you should only protect small pieces of information and also for
