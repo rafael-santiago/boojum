@@ -291,6 +291,43 @@ local function build_install() : result type int {
 
     hefesto.sys.echo("INFO: Done.\n");
 
+    if (hefesto.sys.os_name() == "linux"
+        || hefesto.sys.os_name() == "freebsd") {
+        if (mktree("/usr/local/man/man3") == 0) {
+            hefesto.sys.echo("ERROR: Unable to create destination directory `/usr/local/man/man3`.\n");
+            build("uninstall");
+            hefesto.project.abort(1);
+        }
+        if (hefesto.sys.cd("../etc/man/man3") == 0) {
+            hefesto.sys.echo("ERROR: Unable to find out Boojum's API man pages.\n");
+            build("uninstall");
+            hefesto.project.abort(1);
+        }
+        var manpages type list;
+        $manpages.ls(".*\\.3$");
+
+        hefesto.sys.echo("\nINFO: Now installing Boojum's API man pages...\n");
+
+        var m type int;
+        $m = 0;
+        while ($m < $manpages.count()) {
+            var manpage type string;
+            $manpage = $manpages.item($m);
+            $manpage = filenamefrompath($manpage);
+            $dest = hefesto.sys.make_path("/usr/local/man/man3", $manpage);
+            if (hefesto.sys.cp($manpages.item($m), $dest) != 1) {
+                hefesto.sys.echo("ERROR: Unable to copy `" + $dest + "`.\n");
+                build("uninstall");
+                hefesto.project.abort(1);
+            }
+            $m = $m + 1;
+        }
+
+        hefesto.sys.cd($oldcwd);
+
+        hefesto.sys.echo("INFO: Done.\n");
+    }
+
     result 0;
 }
 
@@ -358,6 +395,31 @@ local function build_uninstall() : result type int {
             hefesto.sys.rm($dest);
         }
         $t = $t + 1;
+    }
+
+    if (hefesto.sys.os_name() == "linux"
+        || hefesto.sys.os_name() == "freebsd") {
+        var manpage_dir type string;
+        $manpage_dir = hefesto.sys.make_path($oldcwd, "../etc/man/man3");
+        if (hefesto.sys.cd($manpage_dir) == 0) {
+            hefesto.sys.echo("ERROR: Unable to find out Boojum's API man pages.\n");
+            hefesto.project.abort(1);
+        }
+        var manpages type list;
+        $manpages.ls(".*\\.3$");
+
+        var m type int;
+        $m = 0;
+        while ($m < $manpages.count()) {
+            var manpage type string;
+            $manpage = $manpages.item($m);
+            $manpage = filenamefrompath($manpage);
+            $dest = hefesto.sys.make_path("/usr/local/man/man3", $manpage);
+            hefesto.sys.rm($dest);
+            $m = $m + 1;
+        }
+
+        hefesto.sys.cd($oldcwd);
     }
 
     hefesto.sys.rmdir($target_path);
