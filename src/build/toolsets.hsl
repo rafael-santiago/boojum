@@ -231,6 +231,10 @@ local function build_install() : result type int {
     var h type int;
     $h = 0;
     while ($h < $headers.count()) {
+        var dest_path type string;
+        $dest_path = $headers.item($h);
+        $dest_path = pathfromfilepath($dest_path);
+        mktree($dest_path);
         var filename type string;
         $filename = $headers.item($h);
         $filename = filenamefrompath($filename);
