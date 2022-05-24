@@ -285,7 +285,7 @@ You can find the sample presented above into ``src/sample``.
 
 ``Boojum`` can also be used from ``C++`` in a pretty straightforward way2, look:
 
-``cpp
+```cpp
 /*
  * Copyright (c) 2022, Rafael Santiago
  * All rights reserved.
