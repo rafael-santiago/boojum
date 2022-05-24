@@ -180,6 +180,11 @@ static void *boojum_data_wiper(void *arg) {
         if (boojum_set_flag(&dw->enabled, 1, &dw->lock) != EXIT_SUCCESS) {
             fprintf(stderr, "Boojum error: Unable to set data wiper thread enabled.\n");
         }
+        usleep(10); // INFO(Rafael): On NetBSD I have noticed a monitor's thread starvation.
+                    //               If we do not do this short sleep the monitor's thread
+                    //               is not able to get the dw->enabled update. Since by
+                    //               sleeping on other Unix-like will no hurt, I decided
+                    //               make it avaiable for all.
         usleep(dw->time_to_vanish * 1000);
         kryptos_freeseg(dw->data, *dw->data_size);
         *dw->data_size = 0;
