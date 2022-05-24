@@ -20,6 +20,10 @@ function get_app_toolset() : result type string {
     result get_current_toolset() + "-c-app";
 }
 
+function get_cc_app_toolset() : result type string {
+    result get_current_toolset() + "-cc-app";
+}
+
 function get_current_toolset() : result type string {
     var option type list;
     $option = hefesto.sys.get_option("toolset");
