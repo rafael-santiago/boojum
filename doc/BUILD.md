@@ -51,8 +51,8 @@ On ``MSVC`` if you want to a debug library:
 BichoPapaum@R00f:~/boojum/src# hefesto --toolset=msvc --compile-model=debug
 ```
 
-If you want to build the well-simple provided sample into ``src/sample``:
+If you want to build the well-simple provided samples into ``src/samples``:
 
 ```
-BichoPapaum@R00f:~/boojum/src# hefesto --mk-sample
+BichoPapaum@R00f:~/boojum/src# hefesto --mk-samples
 ```

@@ -77,9 +77,9 @@ boojum.epilogue() {
             hefesto.project.abort(1);
         }
         var mk_sample type list;
-        $mk_sample = hefesto.sys.get_option("mk-sample");
+        $mk_sample = hefesto.sys.get_option("mk-samples");
         if ($mk_sample.count() > 0) {
-            if (build("sample") != 0) {
+            if (build("samples") != 0) {
                 hefesto.project.abort(1);
             }
         }

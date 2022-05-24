@@ -63,10 +63,10 @@ function build(libname type string) : result type int {
     result 1;
 }
 
-local function build_sample() : result type int {
+local function build_samples() : result type int {
     var oldcwd type string;
     $oldcwd = hefesto.sys.pwd();
-    if (hefesto.sys.cd("sample") != 1) {
+    if (hefesto.sys.cd("samples") != 1) {
         hefesto.sys.echo("ERROR: Unable to find sample directory.\n");
         result 1;
     }

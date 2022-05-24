@@ -189,11 +189,13 @@ Now, follows everything discussed as code:
 #include <boojum.h>
 #if defined(__unix__)
 # include <unistd.h>
+#include <stdlib.h>
+#elif defined(_WIN32)
+# include <windows.h>
 #endif
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <stdlib.h>
 
 #define USE_TIMED_GET 1
 
@@ -281,7 +283,7 @@ epilogue:
 }
 ```
 
-You can find the sample presented above into ``src/sample``.
+You can find the sample presented above into ``src/samples``.
 
 ``Boojum`` can also be used from ``C++`` in a pretty straightforward way, look:
 
@@ -357,7 +359,7 @@ epilogue:
 }
 ```
 
-You can find this sample in ``src/sample``, too.
+You can find this sample in ``src/samples``, too.
 
 [Back](#topics)
 
