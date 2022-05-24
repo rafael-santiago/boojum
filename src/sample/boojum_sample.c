@@ -8,11 +8,13 @@
 #include <boojum.h>
 #if defined(__unix__)
 # include <unistd.h>
+#include <stdlib.h>
+#elif defined(_WIN32)
+# include <windows.h>
 #endif
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <stdlib.h>
 
 #define USE_TIMED_GET 1
 

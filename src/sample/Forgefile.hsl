@@ -40,10 +40,16 @@ boojum-sample.prologue() {
     }
     if ($curr_toolset.match("^msvc-c-") > 0) {
         $ldflags.add_item("libboojum" + get_msvc_lib_suffix() + ".lib");
+        $ldflags.add_item("libkryptos" + get_msvc_lib_suffix() + ".lib");
+        $ldflags.add_item("bcrypt.lib");
     } else {
         $ldflags.add_item("-lboojum");
         $ldflags.add_item("-lkryptos");
-        $ldflags.add_item("-lpthread");
+        if (hefesto.sys.os_name() != "windows") {
+            $ldflags.add_item("-lpthread");
+        } else {
+            $ldflags.add_item("-lbcrypt");
+        }
     }
 }
 
@@ -82,13 +88,19 @@ boojum-cc-sample.prologue() {
     if (hefesto.sys.os_name() == "windows") {
         $target = $target + ".exe";
     }
-    if ($curr_toolset.match("^msvc-c-") > 0) {
+    if ($curr_toolset.match("^msvc-cc-") > 0) {
         $ldflags.add_item("libboojum" + get_msvc_lib_suffix() + ".lib");
+        $ldflags.add_item("libkryptos" + get_msvc_lib_suffix() + ".lib");
+        $ldflags.add_item("bcrypt.lib");
     } else {
         $cflags.add_item("-std=c++17");
         $ldflags.add_item("-lboojum");
         $ldflags.add_item("-lkryptos");
-        $ldflags.add_item("-lpthread");
+        if (hefesto.sys.os_name() != "windows") {
+            $ldflags.add_item("-lpthread");
+        } else {
+            $ldflags.add_item("-lbcrypt");
+        }
     }
 }
 
