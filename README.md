@@ -7,7 +7,7 @@ discussed by *Ferguson, Schneier and Kohno* in their book *"Cryptography Enginee
 
 There they called *"Boojum"* their proposal for sensitive data retention issues mitigation.
 By referring to *Lewis Carroll*'s character. In short, you know that maybe something is
-there but you cannot see it (sorry for the spoiler kids!)
+there but you cannot see it (sorry for the spoiler, kids!)
 
 In the book, the base of the presented discussion is given by the paper from *2002*
 ["How to Forget a Secret"](https://link.springer.com/chapter/10.1007/3-540-49116-3_47)
@@ -25,7 +25,7 @@ data in memory. Yes, even for short periods of time, if it is sensitive and you
 are seeking to deliver best security practices from your stuff, you should care
 about attacks during this short retation time, too.
 
-In general, I have been implemented it as it was originally described by having
+In general, I have been implemented it as it was originally described, having
 only few differences that you can know more about by reading the tech docs.
 
 ## How can I clone this repo?
