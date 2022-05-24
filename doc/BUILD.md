@@ -57,4 +57,4 @@ If you want to build the well-simple provided samples into ``src/samples``:
 BichoPapaum@R00f:~/boojum/src# hefesto --mk-samples
 ```
 
-Once built, you will get those samples in the ``bin`` top-level sub-directory.
+Once built, you will get those samples in ``bin`` top-level sub-directory.
