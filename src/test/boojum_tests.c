@@ -19,6 +19,10 @@
 
 static void print_segment_data(const void *segment, const size_t segment_size);
 
+static FILE *boojum_poker(const int with_boojum);
+
+static int find_secret(const pid_t proc_pid);
+
 // WARN(Rafael): libcutest's memory leak detector have been disabled for all main boojum's entry points
 //               because it depends on pthread conveniences and it by default leaks some resources even
 //               when taking care of requesting it for do not leak nothing... Anyway, all btree tests
@@ -228,6 +232,31 @@ CUTE_TEST_CASE(boojum_kupd_assurance_tests)
 #undef MAS_EH_CLARO
 CUTE_TEST_CASE_END
 
+CUTE_TEST_CASE(boojum_poke_tests)
+    FILE *proc = boojum_poker(0);
+    pid_t proc_pid;
+    char proc_out[1<<10], *p = NULL;
+    CUTE_ASSERT(proc != NULL);
+    usleep(10);
+    memset(proc_out, 0, sizeof(proc_out));
+    fgets(proc_out, sizeof(proc_out), proc);
+    p = strstr(proc_out, "pid: ");
+    CUTE_ASSERT(p != NULL);
+    proc_pid = atoi(p + 5);
+    CUTE_ASSERT(find_secret(proc_pid) == 1);
+    fclose(proc);
+    proc = boojum_poker(1);
+    CUTE_ASSERT(proc != NULL);
+    usleep(10);
+    memset(proc_out, 0, sizeof(proc_out));
+    fgets(proc_out, sizeof(proc_out), proc);
+    p = strstr(proc_out, "pid: ");
+    CUTE_ASSERT(p != NULL);
+    proc_pid = atoi(p + 5);
+    CUTE_ASSERT(find_secret(proc_pid) == 0);
+    fclose(proc);
+CUTE_TEST_CASE_END
+
 static void print_segment_data(const void *segment, const size_t segment_size) {
     const unsigned char *sp = (const unsigned char *)segment;
     const unsigned char *sp_end = sp + segment_size;
@@ -242,4 +271,36 @@ static void print_segment_data(const void *segment, const size_t segment_size) {
         sp++;
     }
     fprintf(stdout, "};");
+}
+
+static FILE *boojum_poker(const int with_boojum) {
+    FILE *proc = NULL;
+    char cmdline[1<<10];
+#if defined(__unix__)
+    sprintf(cmdline, "bin/boojum-poker %s &", (with_boojum) ? "--with-boojum" : "--without-boojum");
+    proc = popen(cmdline, "r");
+#else
+# error Some code wanted.
+#endif
+    return proc;
+}
+
+static int find_secret(const pid_t proc_pid) {
+    char cmdline[1<<10];
+    char wanted_data[1<<10];
+    int retval = -1;
+#if defined(__unix__)
+    sprintf(cmdline, "gcore %d >/dev/null 2>&1", proc_pid);
+    if (system(cmdline) != 0) {
+        return -1;
+    }
+    sprintf(wanted_data, "This is my secret: %d. Do not tell anyone, please.", proc_pid);
+    sprintf(cmdline, "grep \"%s\" core.%d >/dev/null 2>&1", wanted_data, proc_pid);
+    retval = (system(cmdline) == 0);
+    sprintf(cmdline, "core.%d", proc_pid);
+    remove(cmdline);
+#else
+# error Some code wanted.
+#endif
+    return retval;
 }

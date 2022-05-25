@@ -201,6 +201,42 @@ local function build_test() : result type int {
     result $err;
 }
 
+local function build_boojum_poker() : result type int {
+    var oldcwd type string;
+    $oldcwd = hefesto.sys.pwd();
+
+    var dir type string;
+    $dir = hefesto.sys.make_path("test", "boojum_poker");
+
+    if (hefesto.sys.cd($dir) != 1) {
+        hefesto.sys.echo("ERROR: Unable to find test/boojum_poker directory.\n");
+        result 1;
+    }
+
+    var cmdline type string;
+    $cmdline = "hefesto --toolset=" + get_current_toolset();
+
+    var dbg type list;
+    $dbg = hefesto.sys.get_option("compile-model");
+    if ($dbg.count() > 0 && $dbg.item(0) == "debug") {
+        $cmdline = $cmdline + " --compile-model=debug";
+    }
+
+    var boojum_with_c11 type list;
+    $boojum_with_c11 = hefesto.sys.get_option("boojum-with-c11");
+    if ($boojum_with_c11.count() > 0) {
+        $cmdline = $cmdline + " --boojum-with-c11";
+    }
+
+    var err type int;
+    $err = hefesto.sys.run($cmdline);
+
+    hefesto.sys.cd($oldcwd);
+
+    result $err;
+
+}
+
 local function build_install() : result type int {
     var prefix type string;
     var target_path type string;

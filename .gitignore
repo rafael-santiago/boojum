@@ -8,3 +8,4 @@ lib/*
 bin/*
 */samples/*/*
 */test/memcheck-log.txt
+*/test/boojum_poker/o/*
