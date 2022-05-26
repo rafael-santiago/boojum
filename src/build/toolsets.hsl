@@ -250,7 +250,7 @@ local function build_install() : result type int {
         $prefix = "/usr/local";
     }
 
-    $target_path = hefesto.sys.make_path($prefix, "include/boojum");
+    $target_path = hefesto.sys.make_path($prefix, hefesto.sys.make_path("include", "boojum"));
 
     if (mktree($target_path) == 0) {
         hefesto.sys.echo("ERROR: Unable to create destination path `" + $target_path + "`.\n");
@@ -413,7 +413,7 @@ local function build_uninstall() : result type int {
         $h = $h + 1;
     }
 
-    $target_path = hefesto.sys.make_path($prefix, "include/boojum");
+    $target_path = hefesto.sys.make_path($prefix, hefesto.sys.make_path("include", "boojum"));
     hefesto.sys.rmdir($target_path);
 
     $target_path = hefesto.sys.make_path($prefix, "include");
