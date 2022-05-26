@@ -9,3 +9,7 @@ bin/*
 */samples/*/*
 */test/memcheck-log.txt
 */test/boojum_poker/o/*
+*/test/x64/*
+*/x64/*
+*/test/boojum_poker/x64/*
+*.vcxproj

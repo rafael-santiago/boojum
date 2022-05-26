@@ -10,6 +10,11 @@
 #include <boojum_proc.h>
 #if defined(_WIN32)
 # include <windows.h>
+# include <process.h>
+# include <sys/stat.h>
+# if defined(_MSC_VER)
+  typedef int pid_t;
+# endif
 #endif
 #include <errno.h>
 #include <stdio.h>
@@ -233,11 +238,18 @@ CUTE_TEST_CASE(boojum_kupd_assurance_tests)
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_poke_tests)
+#if defined(_WIN32)
+    HANDLE proc_handle = NULL;
+#endif
     FILE *proc = boojum_poker(0);
     pid_t proc_pid;
     char proc_out[1<<10], *p = NULL;
     CUTE_ASSERT(proc != NULL);
+#if !defined(_WIN32)
     usleep(10);
+#else
+    Sleep(10);
+#endif
     memset(proc_out, 0, sizeof(proc_out));
     fgets(proc_out, sizeof(proc_out), proc);
     p = strstr(proc_out, "pid: ");
@@ -245,9 +257,19 @@ CUTE_TEST_CASE(boojum_poke_tests)
     proc_pid = atoi(p + 5);
     CUTE_ASSERT(find_secret(proc_pid) == 1);
     fclose(proc);
+#if defined(_WIN32)
+    proc_handle = OpenProcess(PROCESS_TERMINATE, FALSE, proc_pid);
+    CUTE_ASSERT(proc_handle != NULL);
+    CUTE_ASSERT(TerminateProcess(proc_handle, 0) != FALSE);
+    CloseHandle(proc_handle);
+#endif
     proc = boojum_poker(1);
     CUTE_ASSERT(proc != NULL);
+#if !defined(_WIN32)
     usleep(10);
+#else
+    Sleep(10);
+#endif
     memset(proc_out, 0, sizeof(proc_out));
     fgets(proc_out, sizeof(proc_out), proc);
     p = strstr(proc_out, "pid: ");
@@ -255,6 +277,12 @@ CUTE_TEST_CASE(boojum_poke_tests)
     proc_pid = atoi(p + 5);
     CUTE_ASSERT(find_secret(proc_pid) == 0);
     fclose(proc);
+#if defined(_WIN32)
+    proc_handle = OpenProcess(PROCESS_TERMINATE, FALSE, proc_pid);
+    CUTE_ASSERT(proc_handle != NULL);
+    CUTE_ASSERT(TerminateProcess(proc_handle, 0) != FALSE);
+    CloseHandle(proc_handle);
+#endif
 CUTE_TEST_CASE_END
 
 static void print_segment_data(const void *segment, const size_t segment_size) {
@@ -279,6 +307,17 @@ static FILE *boojum_poker(const int with_boojum) {
 #if defined(__unix__)
     sprintf(cmdline, "bin/boojum-poker %s &", (with_boojum) ? "--with-boojum" : "--without-boojum");
     proc = popen(cmdline, "r");
+#elif defined(_WIN32)
+# if !defined(_MSC_VER)
+    sprintf(cmdline, "start /b bin\\boojum-poker.exe %s", (with_boojum) ? "--with-boojum" : "--without-boojum");
+# else
+    sprintf_s(cmdline, sizeof(cmdline) - 1, "start /b bin\\boojum-poker.exe %s", (with_boojum) ? "--with-boojum" : "--without-boojum");
+# endif
+# if !defined(_MSC_VER)
+    proc = popen(cmdline, "r");
+# else
+    proc = _popen(cmdline, "r");
+# endif
 #else
 # error Some code wanted.
 #endif
@@ -299,6 +338,27 @@ static int find_secret(const pid_t proc_pid) {
     retval = (system(cmdline) == 0);
     sprintf(cmdline, "core.%d", proc_pid);
     remove(cmdline);
+#elif defined(_WIN32)
+    struct stat st;
+    remove(".boojum-poker.dmp");
+# if !defined(_MSC_VER)
+    sprintf(cmdline, "procdump -ma %d .boojum-poker.dmp >nul 2>&1", proc_pid);
+# else
+    sprintf_s(cmdline, sizeof(cmdline) - 1, "procdump -ma %d .boojum-poker.dmp >nul 2>&1", proc_pid);
+# endif
+    system(cmdline);
+    if (stat(".boojum-poker.dmp", &st) != 0) {
+        return -1;
+    }
+# if !defined(_MSC_VER)
+    sprintf(wanted_data, "This is my secret: %d. Do not tell anyone, please.", proc_pid);
+    sprintf(cmdline, "findstr /c:\"%s\" .boojum-poker.dmp >nul 2>&1", wanted_data);
+# else
+    sprintf_s(wanted_data, sizeof(wanted_data) - 1, "This is my secret: %d. Do not tell anyone, please.", proc_pid);
+    sprintf_s(cmdline, sizeof(cmdline) - 1, "findstr /c:\"%s\" .boojum-poker.dmp >nul 2>&1", wanted_data);
+#endif
+    retval = (system(cmdline) == 0);
+    remove(".boojum-poker.dmp");
 #else
 # error Some code wanted.
 #endif

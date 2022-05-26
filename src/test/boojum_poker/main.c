@@ -10,6 +10,11 @@
 # include <unistd.h>
 #elif defined(_WIN32)
 # include <windows.h>
+# include <process.h>
+# define getpid _getpid
+# if defined(_MSC_VER)
+  typedef int pid_t;
+# endif
 #else
 # error Some code wanted.
 #endif
@@ -44,10 +49,15 @@ int main(int argc, char **argv) {
     ppid = getpid();
 
     memset(secret, 0, sizeof(secret));
+#if !defined(_MSC_VER)
     strncpy(secret, "This is my secret: ", sizeof(secret) - 1);
     sprintf(secret + strlen(secret), "%d", ppid);
     strcat(secret, ". Do not tell anyone, please.\n");
-
+#else
+    strncpy_s(secret,  sizeof(secret) - 1, "This is my secret: ", 19);
+    sprintf_s(secret + strlen(secret), sizeof(secret) - strlen(secret) - 1, "%d", ppid);
+    strncat_s(secret, sizeof(secret) - strlen(secret) - 1, ". Do not tell anyone, please.\n", 31);
+#endif
     with_boojum = (strcmp(argv[1], "--with-boojum") == 0);
 
     if (!with_boojum) {
