@@ -11,9 +11,9 @@ seeks to describe ``objectively`` the main features of ``my current Unicorn``.
 - [Header files](#header-files)
 - [Implementation files](#implementation-files)
 - [Naming things](#naming-things)
-- [If..Else blocks](#if-else-blocks)
+- [If..Else blocks](#ifelse-blocks)
 - [While blocks](#while-blocks)
-- [Do..While blocks](#do-while-blocks)
+- [Do..While blocks](#dowhile-blocks)
 - [Functions](#functions)
 
 ## Basic formatting
