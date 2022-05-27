@@ -379,7 +379,7 @@ static int has_needed_tools_to_poke(void) {
     int has = 0;
 #if defined(__unix__)
     has = (WEXITSTATUS(system("grep --version >/dev/null 2>&1")) == 0) &&
-          (WEXITSTATUS(system("gcore >/dev/null 2>&1")) == 2);
+          (WEXITSTATUS(system("man -f gcore >/dev/null 2>&1")) == 0);
 #elif defined(_WIN32)
     has = (system("findstr /? >nul 2>&1") == 0) &&
           (system("procdump -? -e >nul 2>&1") == -1);
