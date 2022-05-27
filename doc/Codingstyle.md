@@ -57,7 +57,7 @@ I am writing it in ``2022``!
 
 2. Try to find the best balance between information and objectivity.
 
-3. Be idiomatic to the knowledge field you are coding from not to design pattern book that you love.
+3. Be idiomatic to the knowledge field you are coding for instead of to design pattern book that you love.
    Here, the knowledge field is ``information security``, ``cryptography``, ``memory management`` and so on.
 
 4. ``snake_case`` is the generic naming convention of choice here.
