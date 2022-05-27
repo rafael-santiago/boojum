@@ -388,7 +388,7 @@ local function build_uninstall() : result type int {
         $prefix = "/usr/local";
     }
 
-    $target_path = hefesto.sys.make_path($prefix, "include/boojum");
+    $target_path = hefesto.sys.make_path($prefix, hefesto.sys.make_path("include", "boojum"));
 
     var oldcwd type string;
     $oldcwd = hefesto.sys.pwd();
@@ -412,6 +412,8 @@ local function build_uninstall() : result type int {
         }
         $h = $h + 1;
     }
+
+    hefesto.sys.cd($oldcwd);
 
     $target_path = hefesto.sys.make_path($prefix, hefesto.sys.make_path("include", "boojum"));
     hefesto.sys.rmdir($target_path);
