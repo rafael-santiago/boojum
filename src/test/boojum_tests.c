@@ -15,8 +15,9 @@
 # if defined(_MSC_VER)
   typedef int pid_t;
 # endif
+#elif defined(__unix__)
+# include <sys/wait.h>
 #endif
-#include <sys/wait.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -380,6 +381,8 @@ static int has_needed_tools_to_poke(void) {
     has = (WEXITSTATUS(system("grep --version >/dev/null 2>&1")) == 0) &&
           (WEXITSTATUS(system("gcore >/dev/null 2>&1")) == 2);
 #elif defined(_WIN32)
+    has = (system("findstr /? >nul 2>&1") == 0) &&
+          (system("procdump -? -e >nul 2>&1") == -1);
 #else
 # error Some code wanted.
 #endif
