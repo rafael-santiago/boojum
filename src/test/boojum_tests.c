@@ -16,6 +16,7 @@
   typedef int pid_t;
 # endif
 #endif
+#include <sys/wait.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -27,6 +28,8 @@ static void print_segment_data(const void *segment, const size_t segment_size);
 static FILE *boojum_poker(const int with_boojum);
 
 static int find_secret(const pid_t proc_pid);
+
+static int has_needed_tools_to_poke(void);
 
 // WARN(Rafael): libcutest's memory leak detector have been disabled for all main boojum's entry points
 //               because it depends on pthread conveniences and it by default leaks some resources even
@@ -241,9 +244,15 @@ CUTE_TEST_CASE(boojum_poke_tests)
 #if defined(_WIN32)
     HANDLE proc_handle = NULL;
 #endif
-    FILE *proc = boojum_poker(0);
-    pid_t proc_pid;
+    FILE *proc = NULL;
+    pid_t proc_pid = 0;
     char proc_out[1<<10], *p = NULL;
+    if (!has_needed_tools_to_poke()) {
+        fprintf(stdout, "WARN: Test skipped because your system does not have"
+                        " the necessary tools to run this test.\n");
+        return NULL;
+    }
+    proc = boojum_poker(0);
     CUTE_ASSERT(proc != NULL);
 #if !defined(_WIN32)
     usleep(10);
@@ -363,4 +372,16 @@ static int find_secret(const pid_t proc_pid) {
 # error Some code wanted.
 #endif
     return retval;
+}
+
+static int has_needed_tools_to_poke(void) {
+    int has = 0;
+#if defined(__unix__)
+    has = (WEXITSTATUS(system("grep --version >/dev/null 2>&1")) == 0) &&
+          (WEXITSTATUS(system("gcore >/dev/null 2>&1")) == 2);
+#elif defined(_WIN32)
+#else
+# error Some code wanted.
+#endif
+    return has;
 }
