@@ -21,6 +21,10 @@ seeks to describe ``objectively`` the main features of ``my current Unicorn``.
 - [Comments and documentation](#comments-and-documentation)
 - [The definition of done](#the-definition-of-done)
 
+
+Have you find some unclear point here? Help me to improve it by opening a related [issue]
+(https://github.com/rafael-santiago/boojum/issues) and, thank you!
+
 ## Basic formatting
 
 1. Here we are replacing ``tabs`` with ``spaces`` and a tab is equals to ``4 spaces`` (some text editors understands 4
