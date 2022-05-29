@@ -141,7 +141,7 @@ do_messy_prologue_epilogue:
 }
 ```
 
-[``Back``](#gotos)
+[``Back``](#topics)
 
 ## Comments and documentation
 
@@ -174,6 +174,8 @@ It is up to you to pick:
 
 Even new feature must be documented by including its advantages and drawbacks. Always be fair with the users.
 
+[``Back``](#topics)
+
 ## The definition of done
 
 A new feature is considered done when:
@@ -189,4 +191,4 @@ A new feature is considered done when:
 8. The commit that adds this new feature to the upstream is descriptive.
    The commit should be direct but it must not be laconic/blasé/cryptic.
 
-[``Back``](#topic)
+[``Back``](#topics)
