@@ -22,8 +22,7 @@ seeks to describe ``objectively`` the main features of ``my current Unicorn``.
 - [The definition of done](#the-definition-of-done)
 
 
-Have you find some unclear point here? Help me to improve it by opening a related [issue]
-(https://github.com/rafael-santiago/boojum/issues) and, thank you!
+Have you find some unclear point here? Help me to improve it by opening a related [issue](https://github.com/rafael-santiago/boojum/issues) and, thank you!
 
 ## Basic formatting
 
