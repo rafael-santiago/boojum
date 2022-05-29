@@ -29,7 +29,7 @@ Have you found some unclear point here? Help me to improve it by opening a relat
 1. Here we are replacing ``tabs`` with ``spaces`` and a tab is equals to ``4 spaces`` (some text editors understands 4
 as 8 spaces, maybe due to a different base, the Truth...).
 
-2. A indentation level is given by ``one tab``.
+2. An indentation level is given by ``one tab``.
 
 3. Control blocks have to be always embraced with ``{ ... }``.
 
