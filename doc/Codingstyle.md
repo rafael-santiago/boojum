@@ -190,5 +190,8 @@ A new feature is considered done when:
 7. It is well documented.
 8. The commit that adds this new feature to the upstream is descriptive.
    The commit should be direct but it must not be laconic/blasé/cryptic.
+9. The commit message must use imperative form. Acting like you are giving commands to the version control system.
+   So ``Giving commands to the version control system`` is wrong. ``Gives commands to the version control system`` still.
+   ``Give commands to the version control system``. Do not be shy of being bossy with it! :wink:
 
 [``Back``](#topics)
