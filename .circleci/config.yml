@@ -1,0 +1,47 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@2.2.0
+
+jobs:
+  linux-build:
+
+    machine: true
+    steps:
+      - run: |
+          sudo apt-get install git
+          sudo apt-get update
+          sudo apt-get install gcc-11 gdb
+          git clone https://github.com/rafael-santiago/hefesto --recursive
+          cd hefesto/src
+          printf "\n" > go.txt
+          sudo ./build.sh < go.txt
+          cd ../..
+          rm -rf hefesto
+      - checkout
+      - run: |
+          git submodule update --init --recursive
+          cd src
+          sudo -i sh -c "cd $(pwd) && hefesto"
+
+  windows-build:
+    executor: win/default
+    steps:
+      - run: choco install mingw procdump -y
+      - run:
+          command:  git clone https://github.com/rafael-santiago/hefesto --recursive && cd hefesto/src && printf "\n" > go.txt
+          shell: bash.exe
+      - run:
+          command: cd hefesto\src && build.bat < go.txt && cd ..\.. && rmdir /q/s hefesto
+          shell: cmd.exe
+      - run: refreshenv
+      - checkout
+      - run: git submodule update --init --recursive
+      - run: cd src;hefesto
+
+
+workflows:
+  boojum-forges:
+    jobs:
+      - linux-build
+      - windows-build

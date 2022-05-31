@@ -112,7 +112,7 @@ local function build_libkryptos() : result type int {
     }
 
     var cmdline type string;
-    $cmdline = "hefesto --toolset=" + $curr_toolset;
+    $cmdline = "hefesto --toolset=" + $curr_toolset + " --no-totp-sync-tests --no-hotp-sync-tests --no-tests";
 
     var dbg type list;
     $dbg = hefesto.sys.get_option("compile-model");
