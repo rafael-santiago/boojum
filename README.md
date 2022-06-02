@@ -1,6 +1,6 @@
 ![Ilustration by Henry Holiday (1839-1927) / Public Domain](https://github.com/rafael-santiago/boojum/blob/main/etc/boojum_by_henry_holiday.png "Ilustration by Henry Holiday (1839-1927) / Public Domain")
 
-## What does Boojum is? [![CircleCI](https://circleci.com/gh/rafael-santiago/boojum/tree/main.svg?style=svg)](https://circleci.com/gh/rafael-santiago/boojum/tree/main)
+## What does Boojum is? [![CircleCI](https://circleci.com/gh/rafael-santiago/boojum/tree/main.svg?style=shield)](https://circleci.com/gh/rafael-santiago/boojum/tree/main)
 
 Good question but here ``"Boojum"`` is my implementation of an ideia for data oblivion
 discussed by *Ferguson, Schneier and Kohno* in their book *"Cryptography Engineering"*.
