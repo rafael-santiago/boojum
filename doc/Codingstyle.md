@@ -27,13 +27,13 @@ Have you found some unclear point here? Help me to improve it by opening a relat
 ## Basic formatting
 
 1. Here we are replacing ``tabs`` with ``spaces`` and a tab is equals to ``4 spaces`` (some text editors understands 4
-as 8 spaces, maybe due to a different base, the Truth...).
+as 8 spaces, maybe due to a different base or even due to "the Truth"...).
 
 2. An indentation level is given by ``one tab``.
 
 3. Control blocks have to be always embraced with ``{ ... }``.
 
-4. Yes, ``80`` columns is a really short limit, try not to exceed ``120``!
+4. Yes, ``80`` columns is a really short limit, try not to exceed ``120``.
 
 ## Header files
 
@@ -42,10 +42,10 @@ as 8 spaces, maybe due to a different base, the Truth...).
 2. Avoid ``#pragma once``, please. Use standard include guards. We do not want to force users to update
 their tool chain just for building our stuff, this is tech facism... Really! Good software projects must
 be ready to compile anywhere it should. Try to use the less possible because less is quicker and less
-headache prone. New features are awesome but it is a cutting point in practice: ``Boojum`` is ready to
-use ``C11 threading``, it is compiling in many environments but it is not linking! Due to ``libc``
-inconsistences. Some OSes are using newest compiler versions but their library are still old.
-I am writing it in ``2022``!
+headache prone. Less is good. New features are awesome but it is a cutting point in practice: ``Boojum``
+is ready to use ``C11 threading``, it is compiling in many environments but it is not linking! Due to
+``libc`` inconsistences. Some OSes are using newest compiler versions but their libraries are still old.
+Notice that I am writing about ``C11`` support inconsistences in ``2022``!
 
 3. Avoid implementing things directly into headers.
 
@@ -67,10 +67,14 @@ I am writing it in ``2022``!
 
 2. Try to find the best balance between information and objectivity.
 
-3. Be idiomatic to the knowledge field you are coding for instead of to design pattern book that you love.
-   Here, the knowledge field is ``information security``, ``cryptography``, ``memory management`` and so on.
+3. Be idiomatic to the knowledge field you are coding for instead of being idiomatic to the design pattern book
+   that you love. Here, the knowledge field is ``information security``, ``cryptography``, ``memory management``
+   and so on.
 
-4. ``snake_case`` is the generic naming convention of choice here.
+4. ``snake_case`` is the generic naming convention of choice here. Use it when naming variables, functions, global
+    symbols etc.
+
+5. Macros must be ``SCREAMED_AND_WRITTEN_IN_SNAKE_CASE_WHEN_NECESSARY`` :laughing:
 
 [``Back``](#topics)
 
@@ -94,7 +98,7 @@ This is the adopted style:
 
 ```c
     while (!yours_not_equals) {
-        reformat_this();
+        yours_no_equals = reformat_this();
     }
 ```
 
@@ -106,7 +110,7 @@ This is the adopted style:
 
 ```c
     do {
-        reformat_this();
+        yours_not_equals = reformat_this();
     } while (!yours_not_equals);
 ```
 
@@ -127,7 +131,7 @@ int do_something(const int i_know_but_better_to_const, const char *buf, const si
 
 ## Gotos
 
-Since ``C language`` does not feature a deferring or ``try..finally`` statements, here we use
+Since ``C language`` does not feature a deferring or ``try..finally`` stuff, here we use
 ``goto`` for accomplishing clean up necessities. With it you can conclude that here gotos only
 jump forward and to the end of the function. Try to never use explicit gotos to jump backward.
 
@@ -149,9 +153,9 @@ do_messy_prologue_epilogue:
 ## Comments and documentation
 
 Try not be a blasé programmer. Stop thinking you are a poet or a genius while coding or a zen haiku coder.
-It does not exist, sometimes you need to comment your stuff for other or even for you in the future.
+It does not exist, sometimes you need to comment your stuff for other people or even for you in the future.
 Try to deliver pieces of engineering that would exist even many centuries after you gone, instead of
-lousy book samples snippets that falls apart on a minimal poke.
+lousy book samples snippets that falls apart on a minimal poke. Try to adopt this mindset.
 
 Your code must stand up even without having you around. Less people needing you around to build your
 stuff, more engineering you are doing, more time you have to do different stuff besides nursing it.
@@ -175,7 +179,7 @@ It is up to you to pick:
 /* INFO(Rafael): or this one. */
 ```
 
-Even new feature must be documented by including its advantages and drawbacks. Always be fair with the users.
+All new features must be documented by including its advantages and drawbacks. Always be fair with the users.
 
 [``Back``](#topics)
 
@@ -184,17 +188,17 @@ Even new feature must be documented by including its advantages and drawbacks. A
 A new feature is considered done when:
 
 1. It does what must do.
-2. It does not adds mess, confusion or even unstability or bugs in the previous stuff.
-3. It ships what promises in the simple (but not simpler) way. In other words, you have used Occam's razor principle on it.
+2. It does not add mess, confusion or even unstability or bugs in the previous stuff.
+3. It ships what it promises in the simple (but not simpler) way. In other words, you have used Occam's razor principle on it.
 4. It is being well tested.
 5. It must not be tied up with some compiler or toolchain to work on. It would be an example of lousy engineering here.
-   More concepts less dependencies.
-6. The ``CI`` must be passing.
+   More concepts less dependencies, please.
+6. ``CI`` must be passing.
 7. It is well documented.
-8. The commit that adds this new feature to the upstream is descriptive.
-   The commit should be direct but it must not be laconic/blasé/cryptic.
+8. The commit which adds this new feature to the upstream is descriptive.
+   The commit should be direct but it must not be laconic/blasé/cryptic, please.
 9. The commit message must use imperative form. Acting like you are giving commands to the version control system.
-   So ``Giving commands to the version control system`` is wrong. ``Gives commands to the version control system`` still.
+   So ``Giving commands to the version control system`` is wrong here. ``Gives commands to the version control system`` still.
    ``Give commands to the version control system``. Do not be shy of being bossy with it! :wink:
 
 [``Back``](#topics)
