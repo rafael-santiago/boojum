@@ -169,9 +169,9 @@ CUTE_TEST_CASE(boojum_set_timed_get_tests)
     CUTE_ASSERT(data != NULL);
     CUTE_ASSERT(memcmp(data, "secret", data_size) == 0);
 #if defined(__unix__)
-    sleep(3);
+    sleep(30);
 #elif defined(_WIN32)
-    Sleep(3000);
+    Sleep(30000);
 #else
 # error Some code wanted.
 #endif
@@ -315,11 +315,11 @@ static FILE *boojum_poker(const int with_boojum) {
     FILE *proc = NULL;
     char cmdline[1<<10];
 #if defined(__unix__)
-    sprintf(cmdline, "bin/boojum-poker %s &", (with_boojum) ? "--with-boojum" : "--without-boojum");
+    snprintf(cmdline, sizeof(cmdline) - 1, "bin/boojum-poker %s &", (with_boojum) ? "--with-boojum" : "--without-boojum");
     proc = popen(cmdline, "r");
 #elif defined(_WIN32)
 # if !defined(_MSC_VER)
-    sprintf(cmdline, "start /b bin\\boojum-poker.exe %s", (with_boojum) ? "--with-boojum" : "--without-boojum");
+    snprintf(cmdline, sizeof(cmdline) - 1, "start /b bin\\boojum-poker.exe %s", (with_boojum) ? "--with-boojum" : "--without-boojum");
 # else
     sprintf_s(cmdline, sizeof(cmdline) - 1, "start /b bin\\boojum-poker.exe %s", (with_boojum) ? "--with-boojum" : "--without-boojum");
 # endif
@@ -335,24 +335,24 @@ static FILE *boojum_poker(const int with_boojum) {
 }
 
 static int find_secret(const pid_t proc_pid) {
-    char cmdline[1<<10];
+    char cmdline[4<<10];
     char wanted_data[1<<10];
     int retval = -1;
 #if defined(__unix__)
-    sprintf(cmdline, "gcore %d >/dev/null 2>&1", proc_pid);
+    snprintf(cmdline, sizeof(cmdline) - 1, "gcore %d >/dev/null 2>&1", proc_pid);
     if (system(cmdline) != 0) {
         return -1;
     }
-    sprintf(wanted_data, "This is my secret: %d. Do not tell anyone, please.", proc_pid);
-    sprintf(cmdline, "grep \"%s\" core.%d >/dev/null 2>&1", wanted_data, proc_pid);
+    snprintf(wanted_data, sizeof(wanted_data) - 1, "This is my secret: %d. Do not tell anyone, please.", proc_pid);
+    snprintf(cmdline, sizeof(cmdline) - 1, "grep \"%s\" core.%d >/dev/null 2>&1", wanted_data, proc_pid);
     retval = (system(cmdline) == 0);
-    sprintf(cmdline, "core.%d", proc_pid);
+    snprintf(cmdline, sizeof(cmdline) - 1, "core.%d", proc_pid);
     remove(cmdline);
 #elif defined(_WIN32)
     struct stat st;
     remove(".boojum-poker.dmp");
 # if !defined(_MSC_VER)
-    sprintf(cmdline, "procdump -ma %d .boojum-poker.dmp >nul 2>&1", proc_pid);
+    snprintf(cmdline, sizeof(cmdline) - 1, "procdump -ma %d .boojum-poker.dmp >nul 2>&1", proc_pid);
 # else
     sprintf_s(cmdline, sizeof(cmdline) - 1, "procdump -ma %d .boojum-poker.dmp >nul 2>&1", proc_pid);
 # endif
@@ -361,8 +361,8 @@ static int find_secret(const pid_t proc_pid) {
         return -1;
     }
 # if !defined(_MSC_VER)
-    sprintf(wanted_data, "This is my secret: %d. Do not tell anyone, please.", proc_pid);
-    sprintf(cmdline, "findstr /c:\"%s\" .boojum-poker.dmp >nul 2>&1", wanted_data);
+    snprintf(wanted_data, sizeof(wanted_data) - 1, "This is my secret: %d. Do not tell anyone, please.", proc_pid);
+    snprintf(cmdline, sizeof(cmdline) - 1, "findstr /c:\"%s\" .boojum-poker.dmp >nul 2>&1", wanted_data);
 # else
     sprintf_s(wanted_data, sizeof(wanted_data) - 1, "This is my secret: %d. Do not tell anyone, please.", proc_pid);
     sprintf_s(cmdline, sizeof(cmdline) - 1, "findstr /c:\"%s\" .boojum-poker.dmp >nul 2>&1", wanted_data);
