@@ -1,0 +1,27 @@
+1. Latest release are on the top.
+2. The versions are cumulative, any feature drop is informed.
+3. Usually, I try to do my best in order to bring you 'RELNOTES' instead of notes from hell ;)
+
+    Rafael
+--
+
+vx20220000 [git-tag: 'vx20220000']
+
+    First library version. Support focused on FreeBSD, Windows and Linux.
+
+    Features:
+
+        - Memory masking done by using the system's CSPRNG by deriving it by using HKDF/SHA3-512.
+        - Memory masking update time customizable.
+        - Main general memory function handling available:
+            . Alloc;
+            . Realloc;
+            . Set;
+            . Get;
+            . Free;
+        - Timed get function. It can get the sensitive plain data and after n msecs
+          wipe it out.
+
+    Bugfixes:
+
+        - None.
