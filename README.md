@@ -13,9 +13,9 @@ In the book, the base of the presented discussion is given by the paper from *20
 ["How to Forget a Secret"](https://link.springer.com/chapter/10.1007/3-540-49116-3_47)
 by *Crescenzo, Ferguson, Impagliazzo and Jakobsson*.
 
-It also protects by cold boot attacks, by the way, if you are worried about
+It also mitigates cold boot attacks, by the way, if you are worried about
 this kind of data leaking, cold boot attacks would be the most harmful problem
-that sensitive data retention in ``RAM`` can call on you. If you are still skeptic
+that sensitive data retention in ``RAM`` can bring up you. If you are still skeptic
 about you can get some tips of this kind of issue in the paper
 ["Lest We Remember: Cold Boot Attacks on Encryption Keys"](http://citpsite.s3.amazonaws.com/wp-content/uploads/2019/01/23195456/halderman.pdf)
 from 2008 by *Halderman, Schoen, Heninger, Clarkson, Paul, Calandrino, Feldman, Appelbaum and Felen*.
@@ -27,6 +27,10 @@ about attacks during this short retation time, too.
 
 In general, I have been implemented it as it was originally described, having
 only few differences that you can know more about by reading the tech docs.
+
+## Supported platforms
+
+I have been using it on ``FreeBSD``, ``Windows`` and also ``Linux``.
 
 ## How can I clone this repo?
 
@@ -45,4 +49,3 @@ Congrats! Now you should read:
 
 *Enjoy!
 Rafael, May 2022.*
-
