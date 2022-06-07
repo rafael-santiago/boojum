@@ -266,7 +266,7 @@ CUTE_TEST_CASE(boojum_poke_tests)
     CUTE_ASSERT(p != NULL);
     proc_pid = atoi(p + 5);
     CUTE_ASSERT(find_secret(proc_pid) == 1);
-    fclose(proc);
+    pclose(proc);
 #if defined(_WIN32)
     proc_handle = OpenProcess(PROCESS_TERMINATE, FALSE, proc_pid);
     CUTE_ASSERT(proc_handle != NULL);
@@ -286,7 +286,7 @@ CUTE_TEST_CASE(boojum_poke_tests)
     CUTE_ASSERT(p != NULL);
     proc_pid = atoi(p + 5);
     CUTE_ASSERT(find_secret(proc_pid) == 0);
-    fclose(proc);
+    pclose(proc);
 #if defined(_WIN32)
     proc_handle = OpenProcess(PROCESS_TERMINATE, FALSE, proc_pid);
     CUTE_ASSERT(proc_handle != NULL);
@@ -339,7 +339,11 @@ static int find_secret(const pid_t proc_pid) {
     char wanted_data[1<<10];
     int retval = -1;
 #if defined(__unix__)
+# if !defined(__NetBSD__)
     snprintf(cmdline, sizeof(cmdline) - 1, "gcore %d >/dev/null 2>&1", proc_pid);
+# else
+    snprintf(cmdline, sizeof(cmdline) - 1, "gcore -c core.%d %d >/dev/null 2>&1", proc_pid, proc_pid);
+# endif
     if (system(cmdline) != 0) {
         return -1;
     }
@@ -378,8 +382,10 @@ static int find_secret(const pid_t proc_pid) {
 static int has_needed_tools_to_poke(void) {
     int has = 0;
 #if defined(__unix__)
-    has = (WEXITSTATUS(system("grep --version >/dev/null 2>&1")) == 0) &&
-          (WEXITSTATUS(system("man -f gcore >/dev/null 2>&1")) == 0);
+    int grep_exit = system("grep --version >/dev/nul 2>&1");
+    int gcore_exit = system("man -f gcore >/dev/null 2>&1");
+    has = (WEXITSTATUS(grep_exit) == 0) &&
+          (WEXITSTATUS(gcore_exit) == 0);
 #elif defined(_WIN32)
     has = (system("findstr /? >nul 2>&1") == 0) &&
           (system("procdump -? -e >nul 2>&1") == -1);
