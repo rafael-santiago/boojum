@@ -47,7 +47,8 @@ boojum.prologue() {
         hefesto.sys.cd("c11");
     } else if (hefesto.sys.os_name() == "freebsd" ||
                hefesto.sys.os_name() == "linux"   ||
-               hefesto.sys.os_name() == "netbsd") {
+               hefesto.sys.os_name() == "netbsd"  ||
+               hefesto.sys.os_name() == "openbsd") {
         hefesto.sys.cd("unix");
     } else if (hefesto.sys.os_name() == "windows") {
         hefesto.sys.cd("windows");

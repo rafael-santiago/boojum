@@ -35,12 +35,19 @@ CUTE_TEST_CASE(boojum_init_deinit_mutex_tests)
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_mutex_lock_unlock_tests)
+#if defined(__OpenBSD__)
+    int status = g_cute_leak_check;
+    g_cute_leak_check = 0;
+#endif
     boojum_mutex mtx;
     CUTE_ASSERT(boojum_init_mutex(&mtx) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_mutex_lock(NULL) == EXIT_FAILURE);
     CUTE_ASSERT(boojum_mutex_lock(&mtx) == EXIT_SUCCESS);
     CUTE_ASSERT(boojum_mutex_unlock(NULL) == EXIT_FAILURE);
     CUTE_ASSERT(boojum_mutex_unlock(&mtx) == EXIT_SUCCESS);
+#if defined(__OpenBSD__)
+    g_cute_leak_check = status;
+#endif
 CUTE_TEST_CASE_END
 
 CUTE_TEST_CASE(boojum_init_deinit_thread_tests)

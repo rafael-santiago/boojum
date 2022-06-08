@@ -146,7 +146,13 @@ int boojum_run_kupd_job(boojum_thread *thread,
 
     // INFO(Rafael): Just in case, but it does not seem to work.
     pthread_attr_init(&attr);
+#if !defined(__OpenBSD__)
+    // INFO(Rafael): On OpenBSD running this thread in detached state
+    //               will drop parent process with SIGBUS. This signal
+    //               will raise at the moment the program tries to
+    //               acquire the giant_lock mutex from kupd_job routine.
     pthread_attr_setdetachstate(&attr, 1);
+#endif
     err = pthread_create(kupd->thread, &attr, boojum_kupd_job, kupd);
     pthread_attr_destroy(&attr);
 

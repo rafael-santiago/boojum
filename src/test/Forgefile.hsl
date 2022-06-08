@@ -51,12 +51,17 @@ boojum-tests.prologue() {
     var os type string;
     $os = hefesto.sys.os_name();
 
-    if ($os == "freebsd" || $os == "netbsd") {
+    if ($os == "freebsd" || $os == "netbsd" || $os == "openbsd") {
         $ldflags.add_item("-lexecinfo");
         $ldflags.add_item("-lpthread");
     } else if ($os == "linux") {
         $ldflags.add_item("-lpthread");
         $ldflags.add_item("-ldl");
+    }
+
+    if ($os == "openbsd") {
+        $includes.add_item("/usr/local/include");
+        $libraries.add_item("/usr/local/lib");
     }
 
     $target = "boojum-tests";
