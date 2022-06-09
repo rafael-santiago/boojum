@@ -30,7 +30,7 @@ only few differences that you can know more about by reading the tech docs.
 
 ## Supported platforms
 
-I have been using it on ``FreeBSD``, ``NetBSD``, ``Windows`` and also ``Linux``.
+I have been using it on ``FreeBSD``, ``NetBSD``, ``OpenBSD``, ``Windows`` and also ``Linux``.
 
 ## How can I clone this repo?
 
