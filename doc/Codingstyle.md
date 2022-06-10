@@ -219,6 +219,6 @@ like ``master/slave`` are out too. You could use ``main``, ``secondary``, ``next
 Do not use sexist and/or machist terms, too.
 
 Still, if you have found some term(s) that for you is not much suitable, let we [know](https://github.com/rafael-santiago/boojum/issues)
-by suggesting some edition(s).
+by suggesting some edition(s), thank you in advance!
 
 [``Back``](#topics)
