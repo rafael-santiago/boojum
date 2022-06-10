@@ -20,7 +20,7 @@ seeks to describe ``objectively`` the main features of ``my current Unicorn``.
 - [Gotos](#gotos)
 - [Comments and documentation](#comments-and-documentation)
 - [The definition of done](#the-definition-of-done)
-
+- [Use inclusive and neutral language](#use-inclusive-and-neutral-language)
 
 Have you found some unclear point here? Help me to improve it by opening a related [issue](https://github.com/rafael-santiago/boojum/issues) and, thank you!
 
@@ -200,5 +200,25 @@ A new feature is considered done when:
 9. The commit message must use imperative form. Acting like you are giving commands to the version control system.
    So ``Giving commands to the version control system`` is wrong here. ``Gives commands to the version control system`` still.
    ``Give commands to the version control system``. Do not be shy of being bossy with it! :wink:
+
+[``Back``](#topics)
+
+## Use inclusive and neutral language
+
+*This is the only point that **there is no concession**. It is **NOT** about unicorns, really. Follow it or farewell.*
+
+Always try to use inclusive and neutral words/terms in your source codes and documentations. If you find something that
+for you seems to be not so correct, please let me know by opening an issue and suggesting improvements. Thank you in
+advance.
+
+In general avoid use colors to name what should be "good" or "bad". Outdated terms such as ``whitelist``/``blacklist``
+are deprecated/banned here. You should use ``allowlist/denylist`` or anything more related to what you really are doing. Terms
+like ``master/slave`` are out too. You could use ``main``, ``secondary``, ``next``, ``trunk``, ``current``, ``supervisor``,
+``worker`` in replacement.
+
+Do not use sexist and/or machist terms, too.
+
+Still, if you have found some term(s) that for you is not much suitable, let we [know](https://github.com/rafael-santiago/boojum/issues)
+by suggesting some edition(s).
 
 [``Back``](#topics)

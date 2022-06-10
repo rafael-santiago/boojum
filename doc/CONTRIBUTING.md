@@ -24,5 +24,5 @@ Anyway, there is no secret on contributing for this project, take a look:
    more about it just follow (the broken) link ![12345-pull-yyz-gama-alfa]" in the code base is sloppy and also kind
    of stupid. The project uses git to tidy up itself. When pushing people to have an internet link to get more specific
    information about the changing history of their copy, you just screwed up the main idea of git: provide a full
-   functional copy of the code base. At the end ``git`` becomes and old centralized version control system, in some sense.
-   :anchor: :exploding_head: :flushed:.
+   functional and self-contained copy of the code base. At the end ``git`` becomes an old centralized version control
+   system, in some sense... :anchor: :exploding_head: :flushed:
