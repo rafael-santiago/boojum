@@ -1,4 +1,4 @@
-# Boojum's contribution how to
+# Boojum's contribution guide
 
 First of all, thank you for being interested on contributing with this project and,
 thank you again for taking some of your time by reading how to do it in the way we
