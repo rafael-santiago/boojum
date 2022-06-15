@@ -23,6 +23,7 @@ boojum.preloading() {
 project boojum : toolset $curr_toolset : dependencies $deps : $srcs, $incs, $cflags, $libraries, $ldflags, $target;
 
 boojum.prologue() {
+    release_build();
     installer();
 
     if (build("libkryptos") != 0) {

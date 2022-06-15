@@ -39,6 +39,14 @@ function get_current_toolset() : result type string {
     result "";
 }
 
+function release_build() : result type none {
+    var option type list;
+    $option = hefesto.sys.get_option("release-build");
+    if ($option.count() > 0) {
+        hefesto.project.abort(build("release"));
+    }
+}
+
 function installer() : result type none {
     var install type list;
     $install = hefesto.sys.get_option("install");
@@ -61,6 +69,313 @@ function build(libname type string) : result type int {
     }
     hefesto.sys.echo("ERROR: Unknown library to build: " + $libname + "\n");
     result 1;
+}
+
+local function get_next_version() : result type string {
+    var lines type list;
+    $lines = hefesto.sys.lines_from_file("boojum.h", "#define BOOJUM_VERSION 0x.*");
+    if ($lines.count() == 0) {
+        hefesto.sys.echo("SANITY CHECK FAILURE: No version found.\n");
+    }
+    var year type string;
+    $year = $lines.item(0);
+    $year.replace("#define BOOJUM_VERSION 0x", "");
+    $year = $year.at(0) + $year.at(1) + $year.at(2) + $year.at(3);
+    var curr_year type string;
+    $curr_year = hefesto.sys.time("%Y");
+    if ($curr_year == $year) {
+        result ("vx" + $curr_year + get_next_relno());
+    }
+    result ("vx" + $year + "0000");
+}
+
+local function get_next_relno() : result type string {
+    var lines type list;
+    var relno type string;
+    $relno = 0;
+    $lines = hefesto.sys.lines_from_file("boojum.h", "#define BOOJUM_VERSION 0x.*");
+    if ($lines.count() > 0) {
+        var curr type string;
+        $curr = $lines.item(0);
+        $curr.replace("#define BOOJUM_VERSION 0x[0123456789][0123456789][0123456789][0123456789]", "");
+        $curr.replace(" //.*$", "");
+        var r type int;
+        $r = str2int($curr);
+        $r = $r + 1;
+        if ($r < 10) {
+            $relno = "000" + $r;
+        } else if ($r < 100) {
+            $relno = "00" + $r;
+        } else if ($r < 1000) {
+            $relno = "0" + $r;
+        } else if ($r < 10000) {
+            $relno = $r;
+        } else {
+            hefesto.sys.echo("SANITY CHECK FAILURE: Well, it seems you have not been really much competent to release nothing. " +
+                             "Please stop releasing bugs.\n");
+            hefesto.project.abort(1);
+        }
+    }
+    result $relno;
+}
+
+local function build_release() : result type none {
+    var option type list;
+    $option = hefesto.sys.get_option("release-build");
+    if ($option.count() == 0) {
+        hefesto.sys.echo("ERROR: Release version tag not informed or it is not really a release build.\n");
+        result 1;
+    }
+    var version_tag type string;
+    $version_tag = $option.item(0);
+
+    if ($version_tag == "1") {
+        $version_tag = get_next_version();
+    }
+
+    var opt type string;
+
+    $opt = prompt("Do you want to create a release for " + $version_tag + "?", newlist("y,n"));
+    if ($opt == "n") {
+        hefesto.sys.echo("INFO: Release build process cancelled.\n");
+        result 1;
+    }
+    if (add_relnotes($version_tag) != 0) {
+        hefesto.sys.echo("INFO: Release build process cancelled.\n");
+        result 1;
+    }
+    if (update_version($version_tag) != 0) {
+        hefesto.sys.echo("INFO: Release build process cancelled.\n");
+        result 1;
+    }
+    update_manpages_version($version_tag);
+    hefesto.sys.echo("INFO: Release build staged. If you really want to release it, commit and push your changes.\n" +
+                     "      E.g.: git commit -am \"Update to release " + $version_tag + "\"\n" +
+                     "            git push origin main\n" +
+                     "            git tag " + $version_tag + "\n" +
+                     "            git push origin main --tags\n");
+    result 0;
+}
+
+local function update_version(version_tag type string) : result type int {
+    var xtag type string;
+    $xtag = $version_tag;
+    $xtag.replace("^vx", "0x");
+    $xtag = "#define BOOJUM_VERSION " + $xtag;
+    hefesto.sys.replace_in_file("boojum.h", "#define BOOJUM_VERSION " +
+                                "0x[0123456789][0123456789][0123456789][0123456789]" +
+                                "[0123456789][0123456789][0123456789][0123456789]", $xtag);
+    result 0;
+}
+
+local function update_manpages_version(version_tag type string) : result type none {
+    var oldcwd type string;
+    $oldcwd = hefesto.sys.pwd();
+    if (hefesto.sys.cd("../etc/man/man3") != 1) {
+        hefesto.sys.echo("ERROR: Unable to find etc/man/man3 sub-directory.\n");
+        hefesto.project.abort(1);
+    }
+
+    var new_version type string;
+    $new_version = $version_tag;
+    $new_version.replace("vx", "0x");
+
+    $new_version = " 3 \"" + get_curr_date_for_manpages() + "\" \"version " + $new_version + "\"";
+
+    var manpages type list;
+    $manpages.ls(".*\\.3");
+    var m type int;
+    while ($m < $manpages.count()) {
+        var manpage_path type string;
+        $manpage_path = $manpages.item($m);
+        hefesto.sys.replace_in_file($manpage_path, " 3 \".*\".*\"version 0x[0123456789]" +
+                                                                          "[0123456789]" +
+                                                                          "[0123456789]" +
+                                                                          "[0123456789]" +
+                                                                          "[0123456789]" +
+                                                                          "[0123456789]" +
+                                                                          "[0123456789]" +
+                                                                          "[0123456789]\"", $new_version);
+        $m = $m + 1;
+    }
+
+    hefesto.sys.cd($oldcwd);
+}
+
+local function get_curr_date_for_manpages() : result type string {
+    var en_months type list;
+    $en_months.add_item("January");
+    $en_months.add_item("February");
+    $en_months.add_item("March");
+    $en_months.add_item("April");
+    $en_months.add_item("May");
+    $en_months.add_item("June");
+    $en_months.add_item("July");
+    $en_months.add_item("August");
+    $en_months.add_item("September");
+    $en_months.add_item("October");
+    $en_months.add_item("November");
+    $en_months.add_item("December");
+    var m type string;
+    $m = hefesto.sys.time("%m");
+    result $en_months.item(str2int($m)) + hefesto.sys.time(" %d") + "," + hefesto.sys.time(" %Y");
+}
+
+local function add_relnotes(version_tag type string) : result type int {
+    var curr_relnotes type list;
+    var new_relnotes type list;
+    $curr_relnotes = hefesto.sys.lines_from_file("../RELNOTES.txt", ".*");
+    var r type int;
+    $r = 0;
+    while ($r < 7) {
+        $new_relnotes.add_item($curr_relnotes.item($r));
+        $r = $r + 1;
+    }
+    $r = 0;
+    while ($r < $new_relnotes.count()) {
+        hefesto.sys.echo($new_relnotes.item($r) + "\n");
+        $r = $r + 1;
+    }
+    var release_overview type string;
+    $release_overview = hefesto.sys.prompt("Release overview: ");
+
+    if ($release_overview.len() == 0) {
+        hefesto.sys.echo("\nSANITY CHECK FAILURE: If you cannot summarize what you are releasing, please, " +
+                         "do not release. Bye!\n");
+        result 1;
+    }
+
+    var features type list;
+    if (prompt(">>> Is there some new features?", newlist("y,n")) == "y") {
+        $features = get_notes();
+    }
+
+    var bugfixes type list;
+    if (prompt(">>> Is there some bugfixes?", newlist("y,n")) == "y") {
+        $bugfixes = get_notes();
+    }
+
+    if ($features.count() == 0 && $bugfixes.count() == 0) {
+        hefesto.sys.echo("\nSANITY CHECK FAILURE: With no features and no bugfixes, there is nothing to release. Bye!\n");
+        result 1;
+    }
+
+    $new_relnotes.add_item($version_tag + " [git-tag: '" + $version_tag + "']");
+    $new_relnotes.add_item("");
+
+    $new_relnotes.add_item("    " + $release_overview);
+    $new_relnotes.add_item("");
+
+    $new_relnotes.add_item("    Features:");
+    $new_relnotes.add_item("");
+
+    if ($features.count() == 0) {
+        $new_relnotes.add_item("        - None.");
+    } else {
+        var n type int;
+        while ($n < $features.count()) {
+            $new_relnotes.add_item("        - " + $features.item($n));
+            $n = $n + 1;
+        }
+    }
+
+    $new_relnotes.add_item("");
+
+    $new_relnotes.add_item("    Bugfixes:");
+    $new_relnotes.add_item("");
+
+    if ($bugfixes.count() == 0) {
+        $new_relnotes.add_item("        - None.");
+    } else {
+        $n = 0;
+        while ($n < $bugfixes.count()) {
+            $new_relnotes.add_item("        - " + $bugfixes.item($n));
+            $n = $n + 1;
+        }
+    }
+
+    $new_relnotes.add_item("");
+
+    $r = 7;
+    while ($r < $curr_relnotes.count()) {
+        $new_relnotes.add_item($curr_relnotes.item($r));
+        $r = $r + 1;
+    }
+
+    if (prompt("Do you want to confirm those notes?", newlist("y,n")) == "n") {
+        result 1;
+    }
+
+    var fp type file;
+    $fp = hefesto.sys.fopen("../RELNOTES.txt", "wb");
+
+    $r = 0;
+    while ($r < $new_relnotes.count()) {
+        var buf type string;
+        if ($new_relnotes.item($r) != "\n") {
+            $buf = $new_relnotes.item($r) + "\n";
+        } else {
+            $buf = "\n";
+        }
+        hefesto.sys.fwrite($buf, $buf.len(), $fp);
+        $r = $r + 1;
+    }
+
+    hefesto.sys.fclose($fp);
+
+    result 0;
+}
+
+local function get_notes() : result type list {
+    var notes type list;
+    hefesto.sys.echo("tip: okay, when you done just type '.' and hit return to go back.\n");
+    var curr_note type string;
+    $curr_note = hefesto.sys.prompt("_ ");
+    while ($curr_note != ".") {
+        $notes.add_item($curr_note);
+        $curr_note = hefesto.sys.prompt("_ ");
+    }
+    result $notes;
+}
+
+local function prompt(message type string, options type list) : result type string {
+    var msg_w_opts type string;
+    $msg_w_opts = $message + " [";
+    var o type int;
+    $o = 0;
+    while ($o < $options.count()) {
+        $msg_w_opts = $msg_w_opts + $options.item($o);
+        if ($o + 1 < $options.count()) {
+            $msg_w_opts = $msg_w_opts + "/";
+        } else {
+            $msg_w_opts = $msg_w_opts + "] ";
+        }
+        $o = $o + 1;
+    }
+    var option type string;
+    $option = hefesto.sys.prompt($msg_w_opts);
+    while ($options.index_of($option) == -1) {
+        $option = hefesto.sys.prompt($msg_w_opts);
+    }
+    result $option;
+}
+
+local function newlist(data type string) : result type list {
+    var retval type list;
+    var d type int;
+    $d = 0;
+    while ($d < $data.len()) {
+        var new_item type string;
+        if ($data.at($d) == ",") {
+            $retval.add_item($new_item);
+            $new_item = "";
+        } else {
+            $new_item = $new_item + $data.at($d);
+        }
+        $d = $d + 1;
+    }
+    $retval.add_item($new_item);
+    result $retval;
 }
 
 local function build_samples() : result type int {
