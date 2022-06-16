@@ -164,7 +164,7 @@ local function build_release() : result type none {
     }
     update_manpages_version($version_tag);
     hefesto.sys.echo("INFO: Release build staged. If you really want to release it, commit and push your changes.\n" +
-                     "      E.g.: git commit -am \"Update RELNOTES.txt for " + $version_tag + "\"\n" +
+                     "      E.g.: git commit -am \"Update RELNOTES.txt\"\n" +
                      "            git push origin main\n" +
                      "            git tag " + $version_tag + "\n" +
                      "            git push origin main --tags\n");
@@ -232,7 +232,9 @@ local function get_curr_date_for_manpages() : result type string {
     $en_months.add_item("December");
     var m type string;
     $m = hefesto.sys.time("%m");
-    result $en_months.item(str2int($m)) + hefesto.sys.time(" %d") + "," + hefesto.sys.time(" %Y");
+    var mi type int;
+    $mi = str2int($m) - 1;
+    result $en_months.item($mi) + hefesto.sys.time(" %d") + "," + hefesto.sys.time(" %Y");
 }
 
 local function add_relnotes(version_tag type string) : result type int {
