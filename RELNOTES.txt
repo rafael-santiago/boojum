@@ -5,6 +5,19 @@
     Rafael
 --
 
+vx20220001 [git-tag: 'vx20220001']
+
+    Added support for two more platforms.
+
+    Features:
+
+        - Support for NetBSD.
+        - Support for OpenBSD.
+
+    Bugfixes:
+
+        - None.
+
 vx20220000 [git-tag: 'vx20220000']
 
     First library version. Support focused on FreeBSD, Windows and Linux.
