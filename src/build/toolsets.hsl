@@ -245,11 +245,7 @@ local function add_relnotes(version_tag type string) : result type int {
         $new_relnotes.add_item($curr_relnotes.item($r));
         $r = $r + 1;
     }
-    $r = 0;
-    while ($r < $new_relnotes.count()) {
-        hefesto.sys.echo($new_relnotes.item($r) + "\n");
-        $r = $r + 1;
-    }
+
     var release_overview type string;
     $release_overview = hefesto.sys.prompt("Release overview: ");
 
