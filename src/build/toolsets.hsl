@@ -133,6 +133,20 @@ local function build_release() : result type none {
         $version_tag = get_next_version();
     }
 
+    var version_pattern type string;
+    $version_pattern = "^vx[0123456789][0123456789][0123456789][0123456789]" +
+                       "[0123456789][0123456789][0123456789][0123456789]$";
+    if ($version_tag.match($version_pattern) == 0) {
+        hefesto.sys.echo("ERROR: Invalid release version.\n");
+        result 1;
+    }
+
+    $option = hefesto.sys.lines_from_file("../RELNOTES.txt", "git-tag: '" + $version_tag + "'");
+    if ($option.count() > 0) {
+        hefesto.sys.echo("ERROR: This provided version was already used.\n");
+        result 1;
+    }
+
     var opt type string;
 
     $opt = prompt("Do you want to create a release for " + $version_tag + "?", newlist("y,n"));
@@ -150,7 +164,7 @@ local function build_release() : result type none {
     }
     update_manpages_version($version_tag);
     hefesto.sys.echo("INFO: Release build staged. If you really want to release it, commit and push your changes.\n" +
-                     "      E.g.: git commit -am \"Update to release " + $version_tag + "\"\n" +
+                     "      E.g.: git commit -am \"Update RELNOTES.txt for " + $version_tag + "\"\n" +
                      "            git push origin main\n" +
                      "            git tag " + $version_tag + "\n" +
                      "            git push origin main --tags\n");

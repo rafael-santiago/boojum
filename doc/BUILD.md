@@ -19,7 +19,7 @@ After a successful build if you want to install it:
 BichoPapaum@R00f:~/boojum/src# hefesto --install [--boojum-home=<path>]
 ```
 
-For uninstalling:
+To uninstall:
 
 ```
 BichoPapaum@R00f:~/boojum/src# hefesto --uninstall [--boojum-home=<path>]
@@ -58,3 +58,11 @@ BichoPapaum@R00f:~/boojum/src# hefesto --mk-samples
 ```
 
 Once built, you will get those samples in ``bin`` top-level sub-directory.
+
+In order to stage a new release you can use the build automation convenience:
+
+```
+BichoPapaum@R00f:~/boojum/src# hefesto --release-build[=<version>]
+```
+
+Then, just follow the steps.
